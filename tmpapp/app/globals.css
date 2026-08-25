@@ -1,0 +1,272 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #F8F7F4;
+  --foreground: #1A1310;
+  /* Premium Palette tokens */
+  --walnut-100: #F2EFEA;
+  --walnut-200: #E5E2DC;
+  --walnut-400: #B0A393;
+  --walnut-500: #8C7E6E;
+  --walnut-800: #2C221E;
+  --brass-500: #A8935D;
+  --marble-50: #F8F7F4;
+  --marble-200: #E5E2DC;
+
+  /* Animation & Motion System Tokens (animate skill) */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+body {
+  color: var(--foreground);
+  background-color: var(--background);
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Brass inlay — signature accent line */
+.brass-inlay {
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    #A8935D 20%,
+    #D4C596 50%,
+    #A8935D 80%,
+    transparent 100%
+  );
+}
+
+/* Premium Card Base with hardware-accelerated smooth elevation */
+.card-premium {
+  background-color: #FFFFFF;
+  border-radius: 6px;
+  border: 1px solid var(--marble-200);
+  box-shadow: 0 1px 3px 0 rgba(44, 34, 30, 0.04), 0 1px 2px -1px rgba(44, 34, 30, 0.02);
+  overflow: hidden;
+  transition: transform 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out), border-color 0.2s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .card-premium:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px -4px rgba(44, 34, 30, 0.08), 0 2px 4px -1px rgba(44, 34, 30, 0.04);
+    border-color: #D4C9BD;
+  }
+}
+
+/* Form inputs — clean bottom border aligned to 8-grid */
+.field-input {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid var(--marble-200);
+  background: transparent;
+  padding: 8px 0;
+  color: var(--walnut-800);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  outline: none;
+  transition: border-color 0.2s var(--ease-out);
+}
+
+.field-input::placeholder {
+  color: var(--walnut-400);
+}
+
+.field-input:focus {
+  border-bottom-color: var(--brass-500);
+}
+
+.field-input:disabled {
+  opacity: 0.5;
+}
+
+/* Typography Labels */
+.field-label {
+  display: block;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--walnut-500);
+  margin-bottom: 8px;
+}
+
+/* Buttons — Strict 8-grid system heights & active press states */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 40px;
+  background-color: #2C221E !important;
+  color: #FFFFFF !important;
+  font-weight: 500;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  padding: 0 24px;
+  border-radius: 4px;
+  border: 1px solid #1A1310;
+  cursor: pointer;
+  transition: transform 0.15s var(--ease-out), background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #3F322D !important;
+  border-color: #2C221E;
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 36px;
+  background-color: #FFFFFF !important;
+  color: #2C221E !important;
+  font-weight: 500;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  padding: 0 16px;
+  border-radius: 4px;
+  border: 1px solid var(--marble-200);
+  cursor: pointer;
+  transition: transform 0.15s var(--ease-out), background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #F8F7F4 !important;
+  border-color: #D2C9BD;
+}
+
+.btn-secondary:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Tab Buttons — Guaranteed high contrast active & inactive states */
+.tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 600;
+  border-radius: 4px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.15s var(--ease-out), background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.tab-btn:active {
+  transform: scale(0.97);
+}
+
+.tab-active {
+  background-color: #2C221E !important;
+  color: #FFFFFF !important;
+  border: 1px solid #1A1310 !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.1);
+}
+
+.tab-inactive {
+  background-color: #FFFFFF !important;
+  color: #4D4237 !important;
+  border: 1px solid #E5E2DC !important;
+}
+
+.tab-inactive:hover {
+  background-color: #F2EFEA !important;
+  color: #1A1310 !important;
+  border-color: #D2C9BD !important;
+}
+
+.tab-badge-active {
+  background-color: #4D4237 !important;
+  color: #FFFFFF !important;
+  padding: 2px 6px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.tab-badge-inactive {
+  background-color: #E5E2DC !important;
+  color: #2C221E !important;
+  padding: 2px 6px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Utility for focus-visible keyboard navigation */
+.focus-ring:focus-visible {
+  outline: 2px solid var(--brass-500);
+  outline-offset: 2px;
+}
+
+/* Keyframe Animations */
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-toast-in {
+  animation: toast-in 200ms var(--ease-out) forwards;
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 220ms var(--ease-out) forwards;
+}
+
+/* Accessibility & Reduced Motion Gating */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
