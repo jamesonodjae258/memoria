@@ -214,17 +214,19 @@ export default function CaseDashboardClient({
           /* Empty state */
           <div className="bg-white rounded shadow-sm overflow-hidden border border-[#E5E2DC]">
             <div className="brass-inlay" />
-            <div className="p-12 text-center max-w-md mx-auto">
-              <div className="w-12 h-12 rounded bg-[#FAF9F7] border border-[#E5E2DC] flex items-center justify-center mx-auto mb-4 text-[#A8935D] font-display text-lg font-bold">
-                G&amp;P
+            <div className="p-10 sm:p-14 text-center max-w-lg mx-auto">
+              <div className="w-14 h-14 rounded-xl bg-[#2C221E] text-[#D4C596] border border-[#1A1310] flex items-center justify-center mx-auto mb-5 font-display text-xl font-bold shadow-sm">
+                M
               </div>
-              <h3 className="text-base font-display font-medium text-[#2C221E] mb-1">
-                {searchQuery ? 'No matching cases found' : 'No cases in this view'}
+              <h3 className="text-xl font-display font-semibold text-[#2C221E] mb-2">
+                {searchQuery
+                  ? 'No matching cases found'
+                  : `Welcome to Memoria — Your Case Ledger is Ready`}
               </h3>
-              <p className="text-xs text-[#6B5E50] mb-6 leading-relaxed">
+              <p className="text-xs sm:text-sm text-[#6B5E50] mb-8 leading-relaxed">
                 {searchQuery
                   ? `No cases matched "${searchQuery}". Try adjusting or clearing your search filter.`
-                  : 'Start by creating a new case intake from a family first call.'}
+                  : 'Start by recording decedent details and family contacts from a first-call intake to generate AI obituaries and pre-fill compliance paperwork.'}
               </p>
 
               {searchQuery ? (
@@ -236,16 +238,35 @@ export default function CaseDashboardClient({
                   Clear search filter
                 </button>
               ) : (
-                <Link
-                  href="/dashboard/cases/new"
-                  className="btn-primary !w-auto text-xs font-semibold uppercase tracking-wider px-5 py-2.5 inline-block"
-                >
-                  Record New Case Intake
-                </Link>
+                <div className="space-y-6">
+                  <Link
+                    href="/dashboard/cases/new"
+                    className="btn-primary !w-auto text-xs font-semibold uppercase tracking-wider px-6 py-3 inline-block shadow-sm"
+                  >
+                    Record First Case Intake
+                  </Link>
+
+                  {/* 3 Step Quickstart Pills */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-6 border-t border-[#E5E2DC] text-left text-xs">
+                    <div className="p-3 rounded bg-[#FAF9F7] border border-[#E5E2DC]">
+                      <span className="text-[10px] font-bold text-[#A8935D] uppercase block mb-1">01. Intake</span>
+                      <p className="text-[11px] text-[#6B5E50] font-medium">Record decedent &amp; family informant details</p>
+                    </div>
+                    <div className="p-3 rounded bg-[#FAF9F7] border border-[#E5E2DC]">
+                      <span className="text-[10px] font-bold text-[#A8935D] uppercase block mb-1">02. Tribute</span>
+                      <p className="text-[11px] text-[#6B5E50] font-medium">AI obituary drafting in 3 respectful tones</p>
+                    </div>
+                    <div className="p-3 rounded bg-[#FAF9F7] border border-[#E5E2DC]">
+                      <span className="text-[10px] font-bold text-[#A8935D] uppercase block mb-1">03. Compliance</span>
+                      <p className="text-[11px] text-[#6B5E50] font-medium">Pre-fill state vital stats &amp; permit PDFs</p>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           </div>
         )}
+
 
       </main>
     </div>

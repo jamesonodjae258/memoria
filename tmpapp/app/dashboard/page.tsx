@@ -81,9 +81,10 @@ export default async function DashboardPage() {
     }
   }
 
-  // Fallback demo cases if database is empty or unconfigured
-  if (cases.length === 0) {
+  // Fallback demo cases ONLY for unauthenticated demo bypass mode or unconfigured preview instances
+  if (cases.length === 0 && (isDemoSession || !isConfigured)) {
     const now = new Date()
+
     const in24h = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString()
     const in5days = new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000).toISOString()
 

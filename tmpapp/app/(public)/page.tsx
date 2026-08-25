@@ -25,22 +25,23 @@ export default function PublicGetStartedPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 shrink-0">
             <Link
               href="/login"
-              className="text-xs font-semibold uppercase tracking-wider text-[#6B5E50] hover:text-[#2C221E] transition-colors px-3 py-2"
+              className="text-xs font-semibold uppercase tracking-wider text-[#6B5E50] hover:text-[#2C221E] transition-colors px-3 py-2 whitespace-nowrap"
             >
               Log in
             </Link>
             <Link
               href="/signup"
-              className="btn-primary text-xs font-semibold uppercase tracking-wider px-4 py-2"
+              className="btn-primary text-xs font-semibold uppercase tracking-wider px-4 py-2 whitespace-nowrap shrink-0"
             >
               Get Started
             </Link>
           </div>
         </div>
       </header>
+
 
       {/* Main Minimal Hero */}
       <main className="flex-1 flex items-center justify-center px-4 py-16">
