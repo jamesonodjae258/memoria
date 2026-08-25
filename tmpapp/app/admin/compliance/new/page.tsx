@@ -1,13 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
-export default function NewComplianceTemplatePage() {
+function NewComplianceTemplateContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const defaultStateId = searchParams.get('state_id') || ''
+
 
   const [states, setStates] = useState<{ id: string; name: string; abbreviation: string }[]>([])
   const [stateId, setStateId] = useState(defaultStateId)
@@ -279,3 +280,18 @@ export default function NewComplianceTemplatePage() {
     </div>
   )
 }
+
+export default function NewComplianceTemplatePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-8 text-center text-xs text-[#64748B]">
+          Loading Template Editor…
+        </div>
+      }
+    >
+      <NewComplianceTemplateContent />
+    </Suspense>
+  )
+}
+

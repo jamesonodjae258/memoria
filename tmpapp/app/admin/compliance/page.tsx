@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 
@@ -21,9 +21,10 @@ interface TemplateItem {
   }
 }
 
-export default function AdminCompliancePage() {
+function AdminComplianceContent() {
   const searchParams = useSearchParams()
   const initialSelectedState = searchParams.get('state_id') || 'all'
+
 
   const [templates, setTemplates] = useState<TemplateItem[]>([])
   const [states, setStates] = useState<{ id: string; name: string; abbreviation: string }[]>([])
@@ -313,3 +314,18 @@ export default function AdminCompliancePage() {
     </div>
   )
 }
+
+export default function AdminCompliancePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-8 text-center text-xs text-[#64748B]">
+          Loading Compliance Templates…
+        </div>
+      }
+    >
+      <AdminComplianceContent />
+    </Suspense>
+  )
+}
+

@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import DashboardHeader from '@/components/dashboard/DashboardHeader'
+
 
 interface ComplianceTemplateItem {
   id: string
@@ -34,10 +35,11 @@ interface ActiveCaseOption {
   status: string
 }
 
-export default function ComplianceLibraryPage() {
+function ComplianceLibraryContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const queryStateId = searchParams.get('state_id')
+
 
   const [registeredStates, setRegisteredStates] = useState<RegisteredState[]>([])
   const [activeState, setActiveState] = useState<{ id: string; name: string; abbreviation: string } | null>(null)
@@ -507,3 +509,18 @@ export default function ComplianceLibraryPage() {
     </div>
   )
 }
+
+export default function ComplianceLibraryPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#F8F7F4] flex items-center justify-center text-xs text-[#8C7E6E]">
+          Loading Compliance Library…
+        </div>
+      }
+    >
+      <ComplianceLibraryContent />
+    </Suspense>
+  )
+}
+
