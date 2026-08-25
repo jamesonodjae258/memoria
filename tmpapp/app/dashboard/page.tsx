@@ -30,6 +30,8 @@ export default async function DashboardPage() {
   let funeralHomeName = 'Grace & Peaceful Memorial Home'
   let staffName = 'Sarah Jenkins (Director)'
 
+  let isSuperAdmin = false
+
   if (user && !isDemoSession) {
     const { data: profile } = await supabase
       .from('staff_profiles')
@@ -49,8 +51,8 @@ export default async function DashboardPage() {
 
     funeralHomeName = profile.funeral_homes?.name ?? funeralHomeName
     staffName = profile.full_name ?? user.email ?? staffName
+    isSuperAdmin = Boolean(profile.is_super_admin)
   }
-
 
   // 2. Fetch cases (RLS automatically restricts to staff member's funeral_home_id)
   let cases: CaseRecord[] = []
@@ -116,7 +118,7 @@ export default async function DashboardPage() {
         created_by: 'demo-user-id',
         deceased_name: 'Arthur James Pendelton',
         date_of_birth: '1938-11-20',
-        date_of_death: '2026-07-19',
+        date_of_death: '2026-07-20',
         place_of_death: 'Austin, TX',
         occupation: 'Architect',
         additional_notes: 'Passionate about woodworking and classical jazz music.',
@@ -141,6 +143,8 @@ export default async function DashboardPage() {
       documentsMap={documentsMap}
       funeralHomeName={funeralHomeName}
       staffName={staffName}
+      isSuperAdmin={isSuperAdmin}
     />
   )
 }
+

@@ -2,18 +2,18 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import CaseCard from './CaseCard'
+import DashboardShell from '@/components/layout/DashboardShell'
+import MetricCard from '@/components/dashboard/MetricCard'
+import AnalyticsCharts from '@/components/dashboard/AnalyticsCharts'
+import CaseTable from '@/components/dashboard/CaseTable'
 import type { CaseRecord, Document } from '@/types'
-
-import DashboardHeader from '@/components/dashboard/DashboardHeader'
-
-export type FilterTab = 'all' | 'active' | 'pending_review' | 'completed'
 
 interface CaseDashboardClientProps {
   cases: CaseRecord[]
   documentsMap: Record<string, Document[]>
   funeralHomeName: string
   staffName: string
+  isSuperAdmin?: boolean
 }
 
 export default function CaseDashboardClient({
@@ -21,232 +21,152 @@ export default function CaseDashboardClient({
   documentsMap,
   funeralHomeName,
   staffName,
+  isSuperAdmin = false,
 }: CaseDashboardClientProps) {
   const [searchQuery, setSearchQuery] = useState('')
-  const [activeTab, setActiveTab] = useState<FilterTab>('all')
 
-  // Filter cases based on search and tab selection
-  const filteredCases = cases.filter((c) => {
-    const query = searchQuery.toLowerCase().trim()
-    const matchesSearch =
-      query === '' ||
-      c.deceased_name.toLowerCase().includes(query) ||
-      c.family_contact_name.toLowerCase().includes(query) ||
-      (c.service_location && c.service_location.toLowerCase().includes(query))
-
-    if (!matchesSearch) return false
-
-    if (activeTab === 'all') return true
-    if (activeTab === 'active') {
-      return c.status !== 'completed'
-    }
-    if (activeTab === 'pending_review') {
-      return c.status === 'documents_pending' || c.status === 'family_review'
-    }
-    if (activeTab === 'completed') {
-      return c.status === 'completed'
-    }
-
-    return true
-  })
-
-  // Metric counts
+  // Compute metrics
   const totalCases = cases.length
   const activeCount = cases.filter((c) => c.status !== 'completed').length
   const pendingReviewCount = cases.filter(
     (c) => c.status === 'documents_pending' || c.status === 'family_review'
   ).length
   const completedCount = cases.filter((c) => c.status === 'completed').length
-  const servicesScheduledCount = cases.filter((c) => Boolean(c.service_date) && c.status !== 'completed').length
+  const scheduledCount = cases.filter(
+    (c) => Boolean(c.service_date) && c.status !== 'completed'
+  ).length
 
-  const counts = {
-    all: totalCases,
-    active: activeCount,
-    pending_review: pendingReviewCount,
-    completed: completedCount,
-  }
+  // Calculate compliance ready rate
+  const complianceReadyPercent =
+    totalCases > 0
+      ? Math.round(((totalCases - pendingReviewCount) / totalCases) * 100)
+      : 100
 
   return (
-    <div className="min-h-screen bg-[#F8F7F4] text-[#1A1310] font-body flex flex-col selection:bg-[#A8935D] selection:text-white">
-      {/* Top Header Navigation */}
-      <DashboardHeader
-        funeralHomeName={funeralHomeName}
-        staffName={staffName}
+    <DashboardShell
+      funeralHomeName={funeralHomeName}
+      staffName={staffName}
+      isSuperAdmin={isSuperAdmin}
+      searchQuery={searchQuery}
+      onSearchChange={setSearchQuery}
+    >
+      {/* 1. Page Title Header & Global Stats */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E5E2DC]">
+        <div>
+          <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-white text-[#8C7E6E] text-[11px] font-semibold uppercase tracking-wider mb-2 border border-[#E5E2DC]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#A8935D]" />
+            Operations Command Center
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-display font-semibold text-[#2C221E] tracking-tight">
+            Active Cases &amp; Operations Ledger
+          </h1>
+          <p className="text-xs sm:text-sm text-[#6B5E50] mt-1">
+            Real-time management for decedent intakes, compliance filings, and memorial arrangements.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3 self-start sm:self-auto">
+          <Link
+            href="/dashboard/compliance"
+            className="btn-secondary !w-auto text-xs font-semibold uppercase tracking-wider px-4 py-2.5 h-10 flex items-center gap-1.5"
+          >
+            <span>📜</span>
+            <span>Compliance Library</span>
+          </Link>
+
+          <Link
+            href="/dashboard/cases/new"
+            className="btn-primary !w-auto text-xs font-semibold uppercase tracking-wider px-5 py-2.5 h-10 flex items-center gap-1.5"
+          >
+            <span>+</span>
+            <span>Record New Intake</span>
+          </Link>
+        </div>
+      </div>
+
+      {/* 2. Operational Focus Metric Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <MetricCard
+          title="Active Intakes"
+          subtitle="Cases currently in active coordination"
+          value={activeCount}
+          badgeText="Active"
+          badgeColor="bg-[#EDF3EC] text-[#346538]"
+          progressPercent={85}
+          icon={
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+          }
+        />
+
+        <MetricCard
+          title="Pending Documents"
+          subtitle="Awaiting state filings or certificates"
+          value={pendingReviewCount}
+          badgeText="Requires Action"
+          badgeColor="bg-[#FBF3DB] text-[#956400]"
+          progressPercent={pendingReviewCount > 0 ? 45 : 100}
+          icon={
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          }
+        />
+
+        <MetricCard
+          title="Upcoming Services"
+          subtitle="Memorials scheduled next 7 days"
+          value={scheduledCount}
+          badgeText="Scheduled"
+          badgeColor="bg-[#F2EFEA] text-[#2C221E]"
+          progressPercent={scheduledCount > 0 ? 70 : 0}
+          icon={
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          }
+        />
+
+        <MetricCard
+          title="Compliance Ready Rate"
+          subtitle="Overall portfolio compliance index"
+          value={`${complianceReadyPercent}%`}
+          badgeText="Healthy"
+          badgeColor="bg-[#EDF3EC] text-[#346538]"
+          progressPercent={complianceReadyPercent}
+          icon={
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          }
+        />
+      </div>
+
+      {/* 3. Analytics Charts */}
+      <AnalyticsCharts
+        totalCases={totalCases}
+        activeCount={activeCount}
+        completedCount={completedCount}
       />
 
-
-      {/* Main Workspace Area */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
-        {/* Page Title Bar & Action */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-          <div>
-            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-white text-[#8C7E6E] text-[11px] font-semibold uppercase tracking-wider mb-2 border border-[#E5E2DC]">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#A8935D]" />
-              Operations Dashboard
-            </div>
-            <h1 className="text-3xl font-display font-medium text-[#2C221E] tracking-tight">
-              Active Case Ledger
-            </h1>
-            <p className="text-sm text-[#6B5E50] mt-1">
-              Overview of all active intakes, AI obituary drafting, and family arrangements.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Link
-              href="/dashboard/cases/new"
-              className="btn-primary !w-auto text-xs font-semibold uppercase tracking-wider px-5 py-2.5 h-10 shadow-sm"
-            >
-              <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-              </svg>
-              New Case Intake
-            </Link>
-          </div>
+      {/* 4. High-Density TanStack Case Table */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="font-display text-lg font-semibold text-[#2C221E]">
+            All Cases Ledger
+          </h2>
+          <span className="text-xs text-[#8C7E6E]">
+            Showing {cases.length} records • Real-time synchronization
+          </span>
         </div>
 
-        {/* Overview Stats Bento Bar */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="p-4 bg-white rounded border border-[#E5E2DC] shadow-sm flex flex-col justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#8C7E6E]">Active Cases</span>
-            <div className="flex items-baseline justify-between mt-2">
-              <span className="text-2xl font-display font-semibold text-[#2C221E]">{activeCount}</span>
-              <span className="text-[10px] font-mono text-[#346538] bg-[#EDF3EC] px-1.5 py-0.5 rounded">Current</span>
-            </div>
-          </div>
-
-          <div className="p-4 bg-white rounded border border-[#E5E2DC] shadow-sm flex flex-col justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#8C7E6E]">Pending Review</span>
-            <div className="flex items-baseline justify-between mt-2">
-              <span className="text-2xl font-display font-semibold text-[#A8935D]">{pendingReviewCount}</span>
-              <span className="text-[10px] font-mono text-[#956400] bg-[#FBF3DB] px-1.5 py-0.5 rounded">Action Req</span>
-            </div>
-          </div>
-
-          <div className="p-4 bg-white rounded border border-[#E5E2DC] shadow-sm flex flex-col justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#8C7E6E]">Services Scheduled</span>
-            <div className="flex items-baseline justify-between mt-2">
-              <span className="text-2xl font-display font-semibold text-[#2C221E]">{servicesScheduledCount}</span>
-              <span className="text-[10px] font-mono text-[#1F6C9F] bg-[#E1F3FE] px-1.5 py-0.5 rounded">Upcoming</span>
-            </div>
-          </div>
-
-          <div className="p-4 bg-white rounded border border-[#E5E2DC] shadow-sm flex flex-col justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#8C7E6E]">Completed Archives</span>
-            <div className="flex items-baseline justify-between mt-2">
-              <span className="text-2xl font-display font-semibold text-[#6B5E50]">{completedCount}</span>
-              <span className="text-[10px] font-mono text-[#6B5E50] bg-[#FAF9F7] px-1.5 py-0.5 rounded border border-[#E5E2DC]">Total</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Filter Toolbar & Search Bar */}
-        <div className="bg-white rounded border border-[#E5E2DC] p-3.5 mb-8 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-          {/* Status Tabs */}
-          <div className="flex items-center overflow-x-auto gap-1.5 p-1 bg-[#FAF9F7] rounded border border-[#E5E2DC] text-xs">
-            {(
-              [
-                { key: 'all', label: 'All Cases' },
-                { key: 'active', label: 'Active' },
-                { key: 'pending_review', label: 'Pending Review' },
-                { key: 'completed', label: 'Completed' },
-              ] as const
-            ).map((tab) => {
-              const isActive = activeTab === tab.key
-              return (
-                <button
-                  key={tab.key}
-                  type="button"
-                  onClick={() => setActiveTab(tab.key)}
-                  className={`tab-btn focus-ring ${isActive ? 'tab-active' : 'tab-inactive'}`}
-                >
-                  <span>{tab.label}</span>
-                  <span className={isActive ? 'tab-badge-active' : 'tab-badge-inactive'}>
-                    {counts[tab.key]}
-                  </span>
-                </button>
-              )
-            })}
-          </div>
-
-          {/* Search Box */}
-          <div className="relative w-full md:w-80">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search deceased or family name..."
-              className="w-full text-xs bg-[#FAF9F7] border border-[#E5E2DC] rounded pl-9 pr-3 py-2 text-[#2C221E] placeholder:text-[#8C7E6E] focus:outline-none focus:border-[#A8935D] focus:bg-white transition-colors"
-            />
-            <svg
-              className="w-4 h-4 text-[#8C7E6E] absolute left-3 top-2.5 pointer-events-none"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-          </div>
-        </div>
-
-        {/* Case Cards Grid */}
-        {filteredCases.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredCases.map((c, index) => (
-              <div
-                key={c.id}
-                className="animate-fade-in-up"
-                style={{ animationDelay: `${Math.min(index * 40, 240)}ms` }}
-              >
-                <CaseCard
-                  caseData={c}
-                  documents={documentsMap[c.id] || []}
-                />
-              </div>
-            ))}
-          </div>
-        ) : (
-          /* Empty state */
-          <div className="bg-white rounded shadow-sm overflow-hidden border border-[#E5E2DC]">
-            <div className="brass-inlay" />
-            <div className="p-12 text-center max-w-md mx-auto">
-              <div className="w-12 h-12 rounded bg-[#FAF9F7] border border-[#E5E2DC] flex items-center justify-center mx-auto mb-4 text-[#A8935D] font-display text-lg font-bold">
-                G&amp;P
-              </div>
-              <h3 className="text-base font-display font-medium text-[#2C221E] mb-1">
-                {searchQuery ? 'No matching cases found' : 'No cases in this view'}
-              </h3>
-              <p className="text-xs text-[#6B5E50] mb-6 leading-relaxed">
-                {searchQuery
-                  ? `No cases matched "${searchQuery}". Try adjusting or clearing your search filter.`
-                  : 'Start by creating a new case intake from a family first call.'}
-              </p>
-
-              {searchQuery ? (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  className="text-xs font-semibold text-[#A8935D] hover:underline"
-                >
-                  Clear search filter
-                </button>
-              ) : (
-                <Link
-                  href="/dashboard/cases/new"
-                  className="btn-primary !w-auto text-xs font-semibold uppercase tracking-wider px-5 py-2.5 inline-block"
-                >
-                  Begin New Case Intake &rarr;
-                </Link>
-              )}
-            </div>
-          </div>
-        )}
-      </main>
-    </div>
+        <CaseTable
+          cases={cases}
+          documentsMap={documentsMap}
+          searchQuery={searchQuery}
+        />
+      </div>
+    </DashboardShell>
   )
 }
