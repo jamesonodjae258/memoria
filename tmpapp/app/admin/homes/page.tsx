@@ -192,8 +192,9 @@ export default function AdminHomesPage() {
 
                     <td className="p-3.5 text-right">
                       <span className="text-[11px] text-[#38BDF8] hover:underline">
-                        View &rarr;
+                        View Details
                       </span>
+
                     </td>
                   </tr>
                 ))}

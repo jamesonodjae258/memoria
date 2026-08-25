@@ -128,8 +128,9 @@ export default function DocumentList({
                 Compiling PDF…
               </>
             ) : (
-              'Generate Paperwork →'
+              'Generate Paperwork'
             )}
+
           </button>
         </div>
 

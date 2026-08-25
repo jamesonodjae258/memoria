@@ -160,10 +160,11 @@ export default function OnboardingStep3Page() {
               disabled={isLoading}
               className="btn-primary h-11 px-6 text-xs font-semibold uppercase tracking-wider flex items-center gap-2"
             >
-              {isLoading ? 'Sending Invitations…' : 'Send Invites & Continue →'}
+              {isLoading ? 'Sending Invitations…' : 'Send Invites & Continue'}
             </button>
           </div>
         </div>
+
       </div>
     </div>
   )

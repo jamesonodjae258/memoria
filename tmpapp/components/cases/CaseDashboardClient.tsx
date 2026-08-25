@@ -240,12 +240,13 @@ export default function CaseDashboardClient({
                   href="/dashboard/cases/new"
                   className="btn-primary !w-auto text-xs font-semibold uppercase tracking-wider px-5 py-2.5 inline-block"
                 >
-                  Begin New Case Intake &rarr;
+                  Record New Case Intake
                 </Link>
               )}
             </div>
           </div>
         )}
+
       </main>
     </div>
   )

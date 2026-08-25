@@ -322,9 +322,10 @@ export default function AdminStatesPage() {
                         href={`/admin/compliance?state_id=${s.id}`}
                         className="text-[#38BDF8] hover:underline font-mono"
                       >
-                        {s.template_count} template{s.template_count === 1 ? '' : 's'} &rarr;
+                        {s.template_count} template{s.template_count === 1 ? '' : 's'}
                       </Link>
                     </td>
+
                     <td className="p-3.5 text-right space-x-2">
                       <Link
                         href={`/admin/compliance/new?state_id=${s.id}`}

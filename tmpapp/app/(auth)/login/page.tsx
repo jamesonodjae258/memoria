@@ -219,7 +219,7 @@ export default function AuthPortalPage() {
               disabled={isLoading}
               className="btn-primary mt-2 text-xs font-semibold uppercase tracking-wider h-10 w-full"
             >
-              {isLoading ? 'Authenticating…' : 'Sign In to Portal →'}
+              {isLoading ? 'Authenticating…' : 'Sign In to Portal'}
             </button>
           </form>
         ) : (
@@ -313,7 +313,7 @@ export default function AuthPortalPage() {
               disabled={isLoading}
               className="btn-primary mt-2 text-xs font-semibold uppercase tracking-wider h-10 w-full"
             >
-              {isLoading ? 'Creating Staff Profile…' : 'Register Funeral Home & Director →'}
+              {isLoading ? 'Creating Staff Profile…' : 'Register Funeral Home & Director'}
             </button>
           </form>
         )}
@@ -325,7 +325,7 @@ export default function AuthPortalPage() {
             onClick={setDemoSession}
             className="text-xs font-semibold text-[#A8935D] hover:text-[#2C221E] transition-colors"
           >
-            ⚡ Instant Director Demo (1-Click Bypass) &rarr;
+            ⚡ Instant Director Demo (1-Click Bypass)
           </button>
         </div>
       </div>

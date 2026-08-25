@@ -134,10 +134,11 @@ export default function OnboardingStep4Page() {
             }}
             className="btn-primary h-12 px-8 text-xs font-semibold uppercase tracking-wider flex items-center justify-center gap-2 w-full sm:w-auto shadow-sm"
           >
-            <span>Launch Director Dashboard →</span>
+            <span>Launch Director Dashboard</span>
           </button>
         </div>
       </div>
     </div>
   )
 }
+

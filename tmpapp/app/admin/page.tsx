@@ -143,7 +143,7 @@ export default function AdminDashboardPage() {
             href="/admin/states"
             className="text-xs text-[#38BDF8] hover:underline font-semibold"
           >
-            Configure States &rarr;
+            Configure States
           </Link>
         </div>
 
@@ -160,7 +160,7 @@ export default function AdminDashboardPage() {
             href="/admin/compliance"
             className="text-xs text-[#38BDF8] hover:underline font-semibold"
           >
-            Manage Templates &rarr;
+            Manage Templates
           </Link>
         </div>
       </div>
@@ -173,9 +173,10 @@ export default function AdminDashboardPage() {
             href="/admin/homes"
             className="text-xs text-[#38BDF8] hover:underline font-semibold"
           >
-            View all accounts ({metrics.totalHomes}) &rarr;
+            View all accounts ({metrics.totalHomes})
           </Link>
         </div>
+
 
         {recentHomes.length === 0 ? (
           <div className="p-8 text-center text-xs text-[#94A3B8]">

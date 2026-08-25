@@ -106,13 +106,13 @@ export default async function CaseDetailPage({
               href={`/dashboard/cases/${params.id}/obituary`}
               className="btn-secondary !w-auto text-xs px-3.5 py-1.5 h-8 font-semibold"
             >
-              Obituary Studio &rarr;
+              Obituary Studio
             </Link>
             <Link
               href={`/dashboard/cases/${params.id}/documents`}
               className="btn-secondary !w-auto text-xs px-3.5 py-1.5 h-8 font-semibold"
             >
-              Compliance PDFs &rarr;
+              Compliance PDFs
             </Link>
           </div>
         </div>
@@ -149,17 +149,18 @@ export default async function CaseDetailPage({
                 href={`/dashboard/cases/${params.id}/obituary`}
                 className="btn-primary !w-auto text-xs font-semibold uppercase tracking-wider px-4 py-2.5 h-9"
               >
-                Draft Obituary &rarr;
+                Draft Obituary
               </Link>
               <Link
                 href={`/dashboard/cases/${params.id}/documents`}
                 className="btn-secondary !w-auto text-xs font-semibold uppercase tracking-wider px-4 py-2.5 h-9"
               >
-                Generate PDFs &rarr;
+                Generate PDFs
               </Link>
             </div>
           </div>
         </div>
+
 
         {/* Bento Grid: Case Details */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">

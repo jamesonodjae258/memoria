@@ -240,7 +240,7 @@ export default function FamilyCommunicationSection({
                 disabled={isSending}
                 className="btn-primary !w-auto text-xs px-4 py-1.5 h-8 font-semibold"
               >
-                {isSending ? 'Sending…' : 'Transmit Update →'}
+                {isSending ? 'Sending…' : 'Transmit Update'}
               </button>
             </div>
           </div>
@@ -252,10 +252,11 @@ export default function FamilyCommunicationSection({
               disabled={isPreviewing}
               className="btn-secondary !w-auto text-xs px-4 py-2 font-semibold"
             >
-              {isPreviewing ? 'Generating Preview…' : 'Preview Dispatch →'}
+              {isPreviewing ? 'Generating Preview…' : 'Preview Dispatch'}
             </button>
           </div>
         )}
+
       </div>
 
       {/* Communication Audit Log */}

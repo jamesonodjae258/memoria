@@ -72,8 +72,9 @@ export default function PublicGetStartedPage() {
               href="/signup"
               className="w-full sm:w-auto flex-1 btn-primary h-12 flex items-center justify-center text-xs font-semibold uppercase tracking-wider shadow-sm"
             >
-              Create account →
+              Create account
             </Link>
+
             <Link
               href="/login"
               className="w-full sm:w-auto flex-1 btn-secondary h-12 flex items-center justify-center text-xs font-semibold uppercase tracking-wider"

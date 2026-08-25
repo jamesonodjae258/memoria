@@ -182,8 +182,9 @@ export default function SettingsStatesPage() {
             href="/dashboard/compliance"
             className="btn-primary !w-auto text-xs font-semibold uppercase tracking-wider px-4 py-2.5 h-10 flex items-center gap-1.5 self-start sm:self-auto"
           >
-            <span>View State Forms &rarr;</span>
+            <span>View State Forms</span>
           </Link>
+
         </div>
 
         {error && (
@@ -295,8 +296,9 @@ export default function SettingsStatesPage() {
                       href={`/dashboard/compliance?state_id=${st.state_id}`}
                       className="text-xs text-[#A8935D] hover:underline font-semibold px-2 py-1"
                     >
-                      View Forms &rarr;
+                      View Forms
                     </Link>
+
 
                     {!st.is_primary && (
                       <>

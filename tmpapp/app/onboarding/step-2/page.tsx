@@ -220,10 +220,11 @@ export default function OnboardingStep2Page() {
             disabled={isLoading}
             className="btn-primary h-11 px-8 text-xs font-semibold uppercase tracking-wider flex items-center gap-2"
           >
-            {isLoading ? 'Saving States…' : 'Next: Invite Team →'}
+            {isLoading ? 'Saving States…' : 'Next: Invite Team'}
           </button>
         </div>
       </form>
+
     </div>
   )
 }

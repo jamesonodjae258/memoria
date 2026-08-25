@@ -202,9 +202,10 @@ export default function SignUpPage() {
               {isLoading ? (
                 <span>Creating Account…</span>
               ) : (
-                <span>Continue to Onboarding →</span>
+                <span>Continue to Onboarding</span>
               )}
             </button>
+
           </div>
         </form>
 

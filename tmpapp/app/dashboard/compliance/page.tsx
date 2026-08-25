@@ -258,7 +258,7 @@ function ComplianceLibraryContent() {
                 href="mailto:support@memoria.app?subject=State%20Compliance%20Request"
                 className="btn-primary !w-auto text-xs font-semibold uppercase tracking-wider px-5 py-2.5 inline-block"
               >
-                Request State Forms &rarr;
+                Request State Forms
               </a>
             </div>
           </div>
@@ -328,7 +328,7 @@ function ComplianceLibraryContent() {
                             rel="noopener noreferrer"
                             className="text-xs text-[#A8935D] hover:underline font-medium"
                           >
-                            Blank PDF Preview &rarr;
+                            Blank PDF Preview
                           </a>
                         ) : (
                           <span className="text-[11px] text-[#8C7E6E]">Dynamic Generator</span>
@@ -339,7 +339,7 @@ function ComplianceLibraryContent() {
                           onClick={() => openGenerateModal(template)}
                           className="btn-primary !w-auto text-xs font-semibold uppercase tracking-wider px-4 py-2"
                         >
-                          Generate for Case &rarr;
+                          Generate for Case
                         </button>
                       </div>
                     </div>
@@ -394,7 +394,7 @@ function ComplianceLibraryContent() {
                             rel="noopener noreferrer"
                             className="text-xs text-[#A8935D] hover:underline font-medium"
                           >
-                            Blank PDF Preview &rarr;
+                            Blank PDF Preview
                           </a>
                         ) : (
                           <span className="text-[11px] text-[#8C7E6E]">Dynamic Generator</span>
@@ -405,7 +405,7 @@ function ComplianceLibraryContent() {
                           onClick={() => openGenerateModal(template)}
                           className="btn-secondary !w-auto text-xs font-semibold uppercase tracking-wider px-4 py-2"
                         >
-                          Generate for Case &rarr;
+                          Generate for Case
                         </button>
                       </div>
                     </div>
@@ -413,6 +413,7 @@ function ComplianceLibraryContent() {
                 </div>
               </div>
             )}
+
           </div>
         )}
       </main>
@@ -499,8 +500,9 @@ function ComplianceLibraryContent() {
                 {isGenerating ? (
                   <span>Generating Compliance PDF…</span>
                 ) : (
-                  <span>Generate &amp; Open Document &rarr;</span>
+                  <span>Generate &amp; Open Document</span>
                 )}
+
               </button>
             </div>
           </div>

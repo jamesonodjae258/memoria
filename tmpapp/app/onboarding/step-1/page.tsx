@@ -256,10 +256,11 @@ export default function OnboardingStep1Page() {
             disabled={isLoading || isPrefetching}
             className="btn-primary h-11 px-8 text-xs font-semibold uppercase tracking-wider flex items-center gap-2"
           >
-            {isLoading ? 'Saving Details…' : 'Next: Select States →'}
+            {isLoading ? 'Saving Details…' : 'Next: Select States'}
           </button>
         </div>
       </form>
+
     </div>
   )
 }

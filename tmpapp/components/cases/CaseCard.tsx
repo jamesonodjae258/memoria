@@ -136,11 +136,12 @@ export default function CaseCard({ caseData, documents = [] }: CaseCardProps) {
         </span>
         <Link
           href={`/dashboard/cases/${caseData.id}`}
-          className="text-xs font-semibold uppercase tracking-wider text-[#2C221E] group-hover:text-[#A8935D] transition-colors inline-flex items-center gap-1"
+          className="text-xs font-semibold uppercase tracking-wider text-[#2C221E] group-hover:text-[#A8935D] transition-colors"
         >
-          Open Case <span className="inline-block transition-transform duration-200 ease-out group-hover:translate-x-1">&rarr;</span>
+          Open Case
         </Link>
       </div>
     </div>
   )
 }
+

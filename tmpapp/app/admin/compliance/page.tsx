@@ -239,10 +239,11 @@ function AdminComplianceContent() {
                             rel="noopener noreferrer"
                             className="text-[10px] text-[#38BDF8] hover:underline font-mono"
                           >
-                            📄 PDF Template Link &rarr;
+                            📄 PDF Template Link
                           </a>
                         </div>
                       )}
+
                     </td>
 
                     <td className="p-3.5">

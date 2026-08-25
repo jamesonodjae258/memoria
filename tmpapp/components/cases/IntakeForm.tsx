@@ -495,7 +495,7 @@ export default function IntakeForm() {
                 disabled={isWorking}
                 className="btn-primary !w-auto text-xs px-5 py-2 font-semibold"
               >
-                Continue &rarr;
+                Continue
               </button>
             ) : (
               <button
@@ -504,9 +504,10 @@ export default function IntakeForm() {
                 disabled={isWorking}
                 className="btn-primary !w-auto text-xs px-5 py-2 font-semibold"
               >
-                {isSubmitting ? 'Creating Case Record…' : 'Finalize & Open Case →'}
+                {isSubmitting ? 'Creating Case Record…' : 'Finalize & Open Case'}
               </button>
             )}
+
           </div>
         </div>
       </div>

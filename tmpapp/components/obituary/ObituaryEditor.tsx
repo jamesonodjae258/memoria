@@ -196,8 +196,9 @@ export default function ObituaryEditor({
           disabled={isGenerating}
           className="btn-primary !w-auto text-xs font-semibold uppercase tracking-wider px-6 py-3"
         >
-          Generate Initial Tribute Draft &rarr;
+          Generate Initial Tribute Draft
         </button>
+
       </div>
     )
   }
@@ -305,8 +306,9 @@ export default function ObituaryEditor({
               disabled={isGenerating || isSaving || isApproving}
               className="btn-primary !w-auto text-xs font-semibold uppercase tracking-wider px-5 py-2"
             >
-              {isApproving ? 'Approving…' : 'Approve Draft →'}
+              {isApproving ? 'Approving…' : 'Approve Draft'}
             </button>
+
           ) : (
             <div className="flex items-center gap-2 text-[#346538] text-xs font-bold uppercase tracking-wider bg-[#EDF3EC] px-3 py-1.5 rounded border border-[#346538]/20">
               <span>✓</span> Approved for Family Review
