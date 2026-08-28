@@ -240,7 +240,6 @@ export default function MemorialConstellationCanvas({
       },
       vertexShader: `
         uniform float uTime;
-        attribute vec3 position;
         varying float vAlpha;
 
         void main() {

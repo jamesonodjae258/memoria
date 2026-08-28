@@ -1,15 +1,25 @@
 import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase/server'
+import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function PATCH(request: NextRequest) {
   try {
-    const supabase = createServerSupabaseClient()
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
+    const isDemoSession = cookies().get('gp_demo_session')?.value === 'true'
+    const isConfigured = Boolean(
+      process.env.NEXT_PUBLIC_SUPABASE_URL &&
+        !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('placeholder')
+    )
 
-    if (authError || !user) {
+    const supabase = createServerSupabaseClient()
+    let user = null
+    try {
+      const { data } = await supabase.auth.getUser()
+      user = data?.user || null
+    } catch {
+      // Graceful fallback
+    }
+
+    if (!user && !isDemoSession && isConfigured) {
       return NextResponse.json(
         { error: 'You must be signed in.' },
         { status: 401 }
@@ -28,6 +38,20 @@ export async function PATCH(request: NextRequest) {
         { error: 'document_id is required.' },
         { status: 400 }
       )
+    }
+
+    if (isDemoSession || !isConfigured || !user) {
+      return NextResponse.json({
+        document: {
+          id: document_id,
+          case_id: 'test_case_demo',
+          type: 'obituary',
+          draft_content: draft_content || '',
+          status: status || 'draft',
+          version: 1,
+          updated_at: new Date().toISOString(),
+        },
+      })
     }
 
     const serviceClient = createServiceRoleClient()

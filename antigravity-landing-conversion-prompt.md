@@ -1,0 +1,1381 @@
+Convert the HTML file below into a proper Next.js 14 page.
+
+CONVERSION RULES — follow exactly, do not deviate:
+
+1. Output the page component at: /app/(public)/landing/page.tsx
+2. Move ALL CSS into a CSS module at: /app/(public)/landing/landing.module.css
+3. Convert every class="" attribute to className={styles.X} using the CSS module
+4. Convert the FAQ accordion JavaScript into React useState — one state variable (openIndex: number | null) that tracks which FAQ item is open
+5. Convert the scroll reveal IntersectionObserver into a useEffect hook that runs on mount. Add the "visible" class via a ref list or a state array of booleans
+6. Move the Google Fonts <link> tags into /app/layout.tsx inside the Next.js <head> — do not put font links inside the page component
+7. Replace all href="#" CTA buttons with Next.js <Link> components:
+   - "Start free trial" → href="/signup"
+   - "Log in" → href="/login"
+   - "Book a demo" → href="/signup"
+   - "Book a call" → href="/signup"
+   - Anchor links like href="#features", href="#how", href="#pricing", href="#faq" stay as standard href anchors — they work fine in Next.js
+8. The <nav> element uses position:fixed — wrap the page in a <main> tag, NOT inside the nav
+9. Do NOT change any copy, colors, layout, spacing, font sizes, or design decisions — pixel-perfect conversion only
+10. Do NOT install any new npm packages — use only what is already in the project (Next.js, React, Tailwind is available but do not rewrite CSS into Tailwind — keep the CSS module)
+11. Add 'use client' at the top of the page component since it uses useState and useEffect
+12. CSS module class names must match the original HTML class names exactly (e.g. .reveal, .btn-primary, .hero-headline) so nothing breaks
+
+When done:
+- List every file created or modified
+- Confirm the FAQ accordion works with useState
+- Confirm the scroll reveal works with useEffect + IntersectionObserver
+- Confirm Google Fonts link is in layout.tsx
+- Do NOT begin any other task
+
+--- HTML TO CONVERT BELOW THIS LINE ---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Memoria — Back-Office AI for Independent Funeral Homes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #F8F6F2;
+      --white:       #FFFFFF;
+      --ink:         #1A1817;
+      --ink-mid:     #3D3A37;
+      --ink-muted:   #7A766F;
+      --border:      #E6E1D8;
+      --border-dark: #C8C0B4;
+      --sage:        #6B8F6E;
+      --sage-light:  #EBF2EB;
+      --sage-mid:    #D4E6D5;
+      --stone:       #B0A090;
+      --error:       #9F2F2D;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.6;
+      font-size: 16px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .serif { font-family: 'Instrument Serif', Georgia, serif; }
+    .serif-italic { font-family: 'Instrument Serif', Georgia, serif; font-style: italic; }
+
+    h1, h2, h3 { line-height: 1.1; letter-spacing: -0.02em; }
+
+    .container {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 0 32px;
+    }
+
+    section { padding: 96px 0; }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+                  transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-delay-1 { transition-delay: 0.08s; }
+    .reveal-delay-2 { transition-delay: 0.16s; }
+    .reveal-delay-3 { transition-delay: 0.24s; }
+    .reveal-delay-4 { transition-delay: 0.32s; }
+    .reveal-delay-5 { transition-delay: 0.40s; }
+
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(248, 246, 242, 0.88);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 0 32px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-logo {
+      font-family: 'Instrument Serif', serif;
+      font-size: 22px;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+      text-decoration: none;
+    }
+
+    .nav-logo span {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      background: var(--sage);
+      border-radius: 50%;
+      margin-left: 3px;
+      vertical-align: middle;
+      margin-bottom: 3px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 36px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--ink-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--ink); }
+
+    .nav-cta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .btn-login {
+      font-size: 14px;
+      color: var(--ink-muted);
+      text-decoration: none;
+      font-weight: 400;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--ink);
+      color: #fff;
+      font-size: 13.5px;
+      font-weight: 500;
+      font-family: 'DM Sans', sans-serif;
+      padding: 9px 20px;
+      border-radius: 5px;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .btn-primary:hover { background: #2D2A26; }
+    .btn-primary:active { transform: scale(0.98); }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: transparent;
+      color: var(--ink);
+      font-size: 13.5px;
+      font-weight: 500;
+      font-family: 'DM Sans', sans-serif;
+      padding: 9px 20px;
+      border-radius: 5px;
+      border: 1px solid var(--border-dark);
+      text-decoration: none;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .btn-secondary:hover { background: var(--white); border-color: var(--ink); }
+
+    #hero {
+      padding: 148px 0 0;
+      overflow: hidden;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--sage);
+      margin-bottom: 28px;
+    }
+
+    .hero-eyebrow::before {
+      content: '';
+      display: inline-block;
+      width: 20px;
+      height: 1px;
+      background: var(--sage);
+    }
+
+    .hero-headline {
+      font-family: 'Instrument Serif', serif;
+      font-size: clamp(42px, 6vw, 76px);
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      color: var(--ink);
+      max-width: 780px;
+      margin-bottom: 28px;
+    }
+
+    .hero-headline em {
+      font-style: italic;
+      color: var(--sage);
+    }
+
+    .hero-sub {
+      font-size: 17px;
+      font-weight: 300;
+      color: var(--ink-mid);
+      max-width: 560px;
+      line-height: 1.65;
+      margin-bottom: 44px;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 80px;
+    }
+
+    .hero-note {
+      font-size: 12.5px;
+      color: var(--ink-muted);
+      margin-top: 14px;
+    }
+
+    .app-window {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 10px 10px 0 0;
+      overflow: hidden;
+      max-width: 100%;
+      box-shadow: 0 2px 40px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.03);
+    }
+
+    .window-chrome {
+      background: #F2EFE9;
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .window-dots { display: flex; gap: 6px; }
+
+    .window-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--border-dark);
+    }
+
+    .window-title-bar {
+      font-size: 12px;
+      color: var(--ink-muted);
+      flex: 1;
+      text-align: center;
+      font-weight: 400;
+    }
+
+    .window-body {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      min-height: 440px;
+    }
+
+    .window-sidebar {
+      background: #F9F7F4;
+      border-right: 1px solid var(--border);
+      padding: 20px 0;
+    }
+
+    .sidebar-org {
+      padding: 0 16px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+
+    .sidebar-org-name { font-size: 13px; font-weight: 600; color: var(--ink); }
+    .sidebar-org-sub { font-size: 11px; color: var(--ink-muted); }
+
+    .sidebar-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 16px;
+      font-size: 12.5px;
+      color: var(--ink-muted);
+      cursor: pointer;
+      border-radius: 4px;
+      margin: 0 8px;
+    }
+
+    .sidebar-nav-item.active {
+      background: var(--white);
+      color: var(--ink);
+      font-weight: 500;
+      border: 1px solid var(--border);
+    }
+
+    .sidebar-icon {
+      width: 14px;
+      height: 14px;
+      background: var(--border);
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    .sidebar-icon.sage { background: var(--sage-mid); }
+    .sidebar-icon.active { background: var(--sage); }
+
+    .window-main { padding: 24px; overflow: hidden; }
+
+    .window-main-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .window-main-title { font-size: 15px; font-weight: 600; color: var(--ink); }
+    .window-main-sub { font-size: 11.5px; color: var(--ink-muted); margin-top: 2px; }
+
+    .btn-mini {
+      background: var(--ink);
+      color: #fff;
+      font-size: 11px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      padding: 6px 14px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .case-table { width: 100%; border-collapse: collapse; }
+
+    .case-table th {
+      font-size: 10.5px;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+      text-align: left;
+      padding: 0 0 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .case-table td {
+      padding: 13px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 12.5px;
+      color: var(--ink-mid);
+      vertical-align: middle;
+    }
+
+    .case-table tr:last-child td { border-bottom: none; }
+
+    .case-name { font-weight: 500; color: var(--ink); font-size: 13px; }
+    .case-family { font-size: 11px; color: var(--ink-muted); margin-top: 2px; }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10.5px;
+      font-weight: 500;
+      letter-spacing: 0.03em;
+      padding: 3px 9px;
+      border-radius: 9999px;
+    }
+
+    .status-badge::before {
+      content: '';
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .status-intake { background: #F2EFE9; color: #7A766F; }
+    .status-intake::before { background: #B0A090; }
+    .status-pending { background: #FBF3DB; color: #956400; }
+    .status-pending::before { background: #C89000; }
+    .status-family { background: #E1F3FE; color: #1F6C9F; }
+    .status-family::before { background: #1F6C9F; }
+    .status-approved { background: #EDF3EC; color: #346538; }
+    .status-approved::before { background: #6B8F6E; }
+
+    .ai-draft-strip {
+      background: var(--sage-light);
+      border: 1px solid var(--sage-mid);
+      border-radius: 6px;
+      padding: 12px 14px;
+      margin-top: 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .ai-dot {
+      width: 22px; height: 22px;
+      background: var(--sage);
+      border-radius: 4px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1px;
+    }
+
+    .ai-dot-inner { width: 8px; height: 8px; background: #fff; border-radius: 50%; }
+    .ai-strip-content { flex: 1; }
+
+    .ai-strip-label {
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--sage);
+      margin-bottom: 3px;
+    }
+
+    .ai-strip-text { font-size: 11.5px; color: var(--ink-mid); line-height: 1.55; }
+    .ai-strip-actions { display: flex; gap: 8px; margin-top: 8px; }
+
+    .ai-action {
+      font-size: 10.5px;
+      font-weight: 500;
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      border: none;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .ai-action-approve { background: var(--sage); color: #fff; }
+    .ai-action-edit { background: var(--white); color: var(--ink-mid); border: 1px solid var(--border); }
+
+    #pain {
+      padding: 64px 0;
+      background: var(--white);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .pain-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; }
+    .pain-item { padding: 40px 48px; border-right: 1px solid var(--border); }
+    .pain-item:last-child { border-right: none; }
+
+    .pain-before {
+      font-size: 12px; font-weight: 500; letter-spacing: 0.05em;
+      text-transform: uppercase; color: var(--stone); margin-bottom: 8px;
+    }
+
+    .pain-headline {
+      font-family: 'Instrument Serif', serif;
+      font-size: 24px; color: var(--ink); line-height: 1.2;
+      margin-bottom: 10px; letter-spacing: -0.01em;
+    }
+
+    .pain-desc { font-size: 14px; color: var(--ink-muted); line-height: 1.6; }
+    .pain-after { margin-top: 12px; font-size: 13px; color: var(--sage); font-weight: 500; }
+
+    #how { background: var(--bg); }
+
+    .section-eyebrow {
+      font-size: 12px; font-weight: 500; letter-spacing: 0.07em;
+      text-transform: uppercase; color: var(--sage); margin-bottom: 16px;
+    }
+
+    .section-headline {
+      font-family: 'Instrument Serif', serif;
+      font-size: clamp(32px, 4vw, 52px);
+      line-height: 1.1; letter-spacing: -0.025em;
+      color: var(--ink); margin-bottom: 16px;
+    }
+
+    .section-sub {
+      font-size: 16px; color: var(--ink-mid); font-weight: 300;
+      max-width: 520px; line-height: 1.65;
+    }
+
+    .steps-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 1px; background: var(--border);
+      border: 1px solid var(--border); border-radius: 10px;
+      overflow: hidden; margin-top: 64px;
+    }
+
+    .step { background: var(--white); padding: 36px 32px; }
+
+    .step-num {
+      font-family: 'Instrument Serif', serif;
+      font-size: 13px; font-style: italic; color: var(--stone); margin-bottom: 20px;
+    }
+
+    .step-icon-wrap {
+      width: 40px; height: 40px; background: var(--sage-light);
+      border-radius: 8px; margin-bottom: 20px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .step-icon-inner { width: 16px; height: 16px; background: var(--sage); border-radius: 3px; }
+    .step-title { font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 8px; line-height: 1.3; }
+    .step-desc { font-size: 13.5px; color: var(--ink-muted); line-height: 1.6; }
+
+    #features { background: var(--white); }
+
+    .bento {
+      display: grid; grid-template-columns: repeat(12, 1fr);
+      gap: 12px; margin-top: 64px;
+    }
+
+    .bento-card {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: 36px; transition: box-shadow 0.2s;
+    }
+
+    .bento-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.05); }
+
+    .bento-1 { grid-column: span 7; }
+    .bento-2 { grid-column: span 5; }
+    .bento-3 { grid-column: span 5; }
+    .bento-4 { grid-column: span 7; }
+    .bento-5 { grid-column: span 4; }
+    .bento-6 { grid-column: span 4; }
+    .bento-7 { grid-column: span 4; }
+
+    .bento-tag {
+      display: inline-block; font-size: 10.5px; font-weight: 500;
+      letter-spacing: 0.05em; text-transform: uppercase;
+      color: var(--sage); background: var(--sage-light);
+      padding: 3px 9px; border-radius: 9999px; margin-bottom: 20px;
+    }
+
+    .bento-title {
+      font-family: 'Instrument Serif', serif;
+      font-size: 22px; letter-spacing: -0.015em;
+      color: var(--ink); line-height: 1.2; margin-bottom: 10px;
+    }
+
+    .bento-desc { font-size: 14px; color: var(--ink-muted); line-height: 1.65; }
+
+    .bento-visual {
+      margin-top: 28px; background: var(--white);
+      border: 1px solid var(--border); border-radius: 8px; padding: 20px;
+    }
+
+    .obit-preview {
+      font-size: 12.5px; color: var(--ink-mid); line-height: 1.75;
+      font-style: italic; font-family: 'Instrument Serif', serif;
+    }
+
+    .obit-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 10px; font-family: 'DM Sans', sans-serif;
+      font-style: normal; color: var(--sage); font-weight: 500; margin-top: 10px;
+    }
+
+    .obit-badge-dot { width: 6px; height: 6px; background: var(--sage); border-radius: 50%; }
+
+    .state-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 20px; }
+
+    .state-pill {
+      font-size: 11px; font-weight: 500; padding: 4px 10px;
+      border-radius: 9999px; background: var(--white);
+      border: 1px solid var(--border); color: var(--ink-mid);
+    }
+
+    .state-pill.active { background: var(--sage); border-color: var(--sage); color: #fff; }
+
+    .stat-large {
+      font-family: 'Instrument Serif', serif;
+      font-size: 52px; letter-spacing: -0.03em;
+      color: var(--ink); line-height: 1; margin-top: 20px;
+    }
+
+    .stat-label { font-size: 13px; color: var(--ink-muted); margin-top: 6px; }
+
+    .comm-timeline { margin-top: 20px; display: flex; flex-direction: column; gap: 0; }
+
+    .comm-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 12px;
+    }
+
+    .comm-item:last-child { border-bottom: none; }
+
+    .comm-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--sage-mid); flex-shrink: 0; margin-top: 4px;
+    }
+
+    .comm-dot.sent { background: var(--sage); }
+    .comm-text { color: var(--ink-mid); line-height: 1.4; }
+    .comm-time { margin-left: auto; color: var(--ink-muted); font-size: 10.5px; white-space: nowrap; }
+
+    #compliance { background: var(--bg); }
+
+    .compliance-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 64px; align-items: center; margin-top: 64px;
+    }
+
+    .compliance-visual {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: 10px; overflow: hidden;
+    }
+
+    .comp-header {
+      background: #F2EFE9; border-bottom: 1px solid var(--border);
+      padding: 14px 20px; display: flex; align-items: center;
+      gap: 10px; font-size: 12px; color: var(--ink-mid); font-weight: 500;
+    }
+
+    .comp-state-select {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: 4px; padding: 4px 10px;
+      font-size: 12px; color: var(--ink); margin-left: auto;
+    }
+
+    .comp-body { padding: 20px; }
+    .comp-form-list { display: flex; flex-direction: column; gap: 8px; }
+
+    .comp-form-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 14px; background: var(--bg);
+      border: 1px solid var(--border); border-radius: 6px;
+    }
+
+    .comp-check {
+      width: 16px; height: 16px; background: var(--sage);
+      border-radius: 4px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .comp-check-empty {
+      width: 16px; height: 16px;
+      border: 1.5px solid var(--border-dark);
+      border-radius: 4px; flex-shrink: 0;
+    }
+
+    .comp-form-name { font-size: 12.5px; color: var(--ink); font-weight: 500; flex: 1; }
+    .comp-form-status { font-size: 10.5px; color: var(--sage); font-weight: 500; }
+    .comp-form-status.missing { color: var(--error); }
+
+    .compliance-points { display: flex; flex-direction: column; gap: 28px; margin-top: 40px; }
+    .comp-point-title { font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 5px; }
+    .comp-point-desc { font-size: 14px; color: var(--ink-muted); line-height: 1.6; }
+
+    #proof { background: var(--ink); padding: 80px 0; }
+
+    .proof-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 1px; background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px; overflow: hidden;
+    }
+
+    .proof-item { padding: 48px 40px; background: var(--ink); }
+
+    .proof-num {
+      font-family: 'Instrument Serif', serif;
+      font-size: 64px; letter-spacing: -0.04em; color: #fff; line-height: 1;
+    }
+
+    .proof-num span { color: var(--sage); }
+    .proof-label { font-size: 14px; color: rgba(255,255,255,0.45); margin-top: 10px; line-height: 1.5; }
+
+    .proof-divider {
+      width: 32px; height: 1px;
+      background: rgba(255,255,255,0.15); margin: 14px 0;
+    }
+
+    .proof-sub {
+      font-size: 13px; color: rgba(255,255,255,0.3);
+      font-style: italic; font-family: 'Instrument Serif', serif;
+    }
+
+    #pricing { background: var(--white); }
+
+    .pricing-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 1px; background: var(--border);
+      border: 1px solid var(--border); border-radius: 10px;
+      overflow: hidden; margin-top: 64px;
+    }
+
+    .pricing-card { background: var(--bg); padding: 40px 36px; }
+    .pricing-card.featured { background: var(--white); }
+
+    .pricing-plan {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.07em;
+      text-transform: uppercase; color: var(--ink-muted); margin-bottom: 20px;
+    }
+
+    .pricing-plan.sage { color: var(--sage); }
+
+    .pricing-price {
+      font-family: 'Instrument Serif', serif;
+      font-size: 48px; letter-spacing: -0.03em;
+      color: var(--ink); line-height: 1; margin-bottom: 4px;
+    }
+
+    .pricing-period { font-size: 13px; color: var(--ink-muted); margin-bottom: 28px; }
+
+    .pricing-features {
+      list-style: none; display: flex; flex-direction: column;
+      gap: 10px; margin-bottom: 32px; padding-bottom: 32px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .pricing-feature {
+      display: flex; align-items: flex-start; gap: 10px;
+      font-size: 13.5px; color: var(--ink-mid); line-height: 1.4;
+    }
+
+    .pricing-check {
+      width: 14px; height: 14px; background: var(--sage-light);
+      border-radius: 3px; flex-shrink: 0; margin-top: 2px;
+    }
+
+    .pricing-check.on { background: var(--sage); }
+    .pricing-note { font-size: 12px; color: var(--ink-muted); margin-top: 16px; }
+
+    #faq { background: var(--bg); }
+
+    .faq-list { max-width: 720px; margin: 64px auto 0; }
+    .faq-item { border-bottom: 1px solid var(--border); }
+
+    .faq-question {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 22px 0; font-size: 15px; font-weight: 500;
+      color: var(--ink); cursor: pointer; gap: 20px;
+      background: none; border: none; width: 100%;
+      text-align: left; font-family: 'DM Sans', sans-serif;
+    }
+
+    .faq-toggle {
+      font-size: 20px; color: var(--ink-muted); flex-shrink: 0;
+      line-height: 1; font-weight: 300; transition: transform 0.2s;
+    }
+
+    .faq-item.open .faq-toggle { transform: rotate(45deg); }
+
+    .faq-answer {
+      font-size: 14px; color: var(--ink-muted); line-height: 1.7;
+      padding-bottom: 22px; max-height: 0; overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+
+    .faq-item.open .faq-answer { max-height: 400px; }
+
+    #cta { background: var(--white); border-top: 1px solid var(--border); text-align: center; }
+
+    .cta-eyebrow {
+      font-family: 'Instrument Serif', serif; font-style: italic;
+      font-size: 16px; color: var(--stone); margin-bottom: 24px;
+    }
+
+    .cta-headline {
+      font-family: 'Instrument Serif', serif;
+      font-size: clamp(36px, 5vw, 64px); letter-spacing: -0.03em;
+      color: var(--ink); line-height: 1.05;
+      max-width: 700px; margin: 0 auto 28px;
+    }
+
+    .cta-sub {
+      font-size: 16px; color: var(--ink-muted); font-weight: 300;
+      max-width: 480px; margin: 0 auto 48px; line-height: 1.65;
+    }
+
+    .cta-actions { display: flex; align-items: center; justify-content: center; gap: 16px; }
+
+    footer { background: var(--ink); padding: 60px 0; }
+
+    .footer-inner {
+      display: flex; align-items: flex-start;
+      justify-content: space-between; gap: 48px;
+    }
+
+    .footer-logo {
+      font-family: 'Instrument Serif', serif;
+      font-size: 20px; color: #fff; text-decoration: none; letter-spacing: -0.01em;
+    }
+
+    .footer-logo span {
+      display: inline-block; width: 6px; height: 6px;
+      background: var(--sage); border-radius: 50%;
+      margin-left: 2px; vertical-align: middle; margin-bottom: 3px;
+    }
+
+    .footer-tagline {
+      font-size: 13px; color: rgba(255,255,255,0.35);
+      margin-top: 8px; font-style: italic; font-family: 'Instrument Serif', serif;
+    }
+
+    .footer-links { display: flex; gap: 48px; }
+
+    .footer-col-title {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+      text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 16px;
+    }
+
+    .footer-col-links {
+      list-style: none; display: flex; flex-direction: column; gap: 10px;
+    }
+
+    .footer-col-links a {
+      font-size: 13.5px; color: rgba(255,255,255,0.5);
+      text-decoration: none; transition: color 0.2s;
+    }
+
+    .footer-col-links a:hover { color: rgba(255,255,255,0.85); }
+
+    .footer-bottom {
+      margin-top: 48px; padding-top: 28px;
+      border-top: 1px solid rgba(255,255,255,0.07);
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 12px; color: rgba(255,255,255,0.2);
+    }
+
+    @media (max-width: 900px) {
+      .nav-links { display: none; }
+      .pain-grid { grid-template-columns: 1fr; }
+      .pain-item { border-right: none; border-bottom: 1px solid var(--border); }
+      .pain-item:last-child { border-bottom: none; }
+      .steps-grid { grid-template-columns: 1fr 1fr; }
+      .bento { display: flex; flex-direction: column; }
+      .compliance-grid { grid-template-columns: 1fr; }
+      .proof-grid { grid-template-columns: 1fr; }
+      .pricing-grid { grid-template-columns: 1fr; }
+      .footer-inner { flex-direction: column; }
+      .footer-links { flex-wrap: wrap; gap: 32px; }
+      .window-body { grid-template-columns: 1fr; }
+      .window-sidebar { display: none; }
+    }
+
+    @media (max-width: 600px) {
+      section { padding: 64px 0; }
+      .container { padding: 0 20px; }
+      .hero-actions { flex-direction: column; align-items: flex-start; }
+      .steps-grid { grid-template-columns: 1fr; }
+      .cta-actions { flex-direction: column; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .reveal, .reveal-delay-1, .reveal-delay-2,
+      .reveal-delay-3, .reveal-delay-4, .reveal-delay-5 {
+        opacity: 1; transform: none; transition: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-inner">
+      <a href="#" class="nav-logo">Memoria<span></span></a>
+      <ul class="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#compliance">Compliance</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+        <li><a href="#faq">FAQ</a></li>
+      </ul>
+      <div class="nav-cta">
+        <a href="#" class="btn-login">Log in</a>
+        <a href="#" class="btn-primary">Start free trial</a>
+      </div>
+    </div>
+  </nav>
+
+  <section id="hero">
+    <div class="container">
+      <div class="hero-eyebrow reveal">Built for independent funeral homes</div>
+      <h1 class="hero-headline reveal reveal-delay-1">
+        Your paperwork is done<br>before the family <em>leaves the room.</em>
+      </h1>
+      <p class="hero-sub reveal reveal-delay-2">
+        Memoria is a back-office AI agent that handles case intake, obituary drafting,
+        state compliance paperwork, and family communication — so your team can stay
+        focused on the people in front of them.
+      </p>
+      <div class="reveal reveal-delay-3">
+        <div class="hero-actions">
+          <a href="#" class="btn-primary">Start free trial</a>
+          <a href="#how" class="btn-secondary">See how it works</a>
+        </div>
+        <p class="hero-note">30-day free trial. No credit card required.</p>
+      </div>
+
+      <div class="app-window reveal reveal-delay-4">
+        <div class="window-chrome">
+          <div class="window-dots">
+            <div class="window-dot"></div>
+            <div class="window-dot"></div>
+            <div class="window-dot"></div>
+          </div>
+          <div class="window-title-bar">Memoria — Active Cases</div>
+        </div>
+        <div class="window-body">
+          <div class="window-sidebar">
+            <div class="sidebar-org">
+              <div class="sidebar-org-name">Reeves &amp; Sons</div>
+              <div class="sidebar-org-sub">Funeral Home · Texas</div>
+            </div>
+            <div class="sidebar-nav-item active">
+              <div class="sidebar-icon active"></div>
+              Active Cases
+            </div>
+            <div class="sidebar-nav-item">
+              <div class="sidebar-icon sage"></div>
+              Obituaries
+            </div>
+            <div class="sidebar-nav-item">
+              <div class="sidebar-icon"></div>
+              Compliance
+            </div>
+            <div class="sidebar-nav-item">
+              <div class="sidebar-icon"></div>
+              Communications
+            </div>
+            <div class="sidebar-nav-item">
+              <div class="sidebar-icon"></div>
+              Settings
+            </div>
+          </div>
+          <div class="window-main">
+            <div class="window-main-header">
+              <div>
+                <div class="window-main-title">Active Cases</div>
+                <div class="window-main-sub">3 open · 1 awaiting your review</div>
+              </div>
+              <button class="btn-mini">+ New Case</button>
+            </div>
+            <table class="case-table">
+              <thead>
+                <tr>
+                  <th>Deceased</th>
+                  <th>Service Date</th>
+                  <th>Status</th>
+                  <th>Pending</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <div class="case-name">Thomas Adeyemi</div>
+                    <div class="case-family">Contact: Grace Adeyemi</div>
+                  </td>
+                  <td>Aug 28, 2026</td>
+                  <td><span class="status-badge status-pending">Documents Pending</span></td>
+                  <td style="font-size:11.5px;color:var(--ink-muted)">Obituary review</td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="case-name">Margaret O'Brien</div>
+                    <div class="case-family">Contact: Patrick O'Brien</div>
+                  </td>
+                  <td>Sep 2, 2026</td>
+                  <td><span class="status-badge status-family">Family Review</span></td>
+                  <td style="font-size:11.5px;color:var(--ink-muted)">Awaiting sign-off</td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="case-name">James Witherspoon</div>
+                    <div class="case-family">Contact: Delia Witherspoon</div>
+                  </td>
+                  <td>Sep 5, 2026</td>
+                  <td><span class="status-badge status-intake">Intake</span></td>
+                  <td style="font-size:11.5px;color:var(--ink-muted)">Generate documents</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="ai-draft-strip">
+              <div class="ai-dot"><div class="ai-dot-inner"></div></div>
+              <div class="ai-strip-content">
+                <div class="ai-strip-label">Obituary Draft Ready · Thomas Adeyemi</div>
+                <div class="ai-strip-text">
+                  Thomas Adeyemi, beloved husband and father of three, passed peacefully on August 22nd.
+                  A retired civil engineer, Thomas was known for his quiet generosity and his Sunday morning
+                  breakfasts that somehow fed the whole street...
+                </div>
+                <div class="ai-strip-actions">
+                  <button class="ai-action ai-action-approve">Approve draft</button>
+                  <button class="ai-action ai-action-edit">Edit</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="pain">
+    <div class="container">
+      <div class="pain-grid">
+        <div class="pain-item reveal">
+          <div class="pain-before">The old way</div>
+          <div class="pain-headline">45-minute intake calls, typed up afterward</div>
+          <div class="pain-desc">Every case starts the same way — a phone call, handwritten notes, then re-typing everything into three different places.</div>
+          <div class="pain-after">Memoria captures it once. Everything else follows.</div>
+        </div>
+        <div class="pain-item reveal reveal-delay-1">
+          <div class="pain-before">The old way</div>
+          <div class="pain-headline">Obituaries drafted from scratch, under pressure</div>
+          <div class="pain-desc">Your staff writes the same structure for every case — name, dates, survivors — while families wait and grief doesn't slow down.</div>
+          <div class="pain-after">First draft in under 3 minutes. Staff edits, not writes.</div>
+        </div>
+        <div class="pain-item reveal reveal-delay-2">
+          <div class="pain-before">The old way</div>
+          <div class="pain-headline">State compliance forms filled by hand, every time</div>
+          <div class="pain-desc">Different states, different forms, same intake data — re-entered for each document with no automation in sight.</div>
+          <div class="pain-after">Memoria knows your state's requirements and pre-fills them.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="how">
+    <div class="container">
+      <div class="section-eyebrow reveal">How it works</div>
+      <h2 class="section-headline reveal reveal-delay-1">From first call to filed paperwork,<br>without the manual work</h2>
+      <p class="section-sub reveal reveal-delay-2">
+        Memoria runs alongside your team. Staff still makes every decision — the AI handles everything that doesn't need a human decision.
+      </p>
+      <div class="steps-grid">
+        <div class="step reveal">
+          <div class="step-num">01</div>
+          <div class="step-icon-wrap"><div class="step-icon-inner"></div></div>
+          <div class="step-title">Family contacts your funeral home</div>
+          <div class="step-desc">Staff opens a new case in Memoria. The intake form captures every detail once — no re-entry later.</div>
+        </div>
+        <div class="step reveal reveal-delay-1">
+          <div class="step-num">02</div>
+          <div class="step-icon-wrap"><div class="step-icon-inner"></div></div>
+          <div class="step-title">AI drafts all documents immediately</div>
+          <div class="step-desc">Obituary, compliance paperwork, and family update messages are generated from the intake data — ready for staff review in minutes.</div>
+        </div>
+        <div class="step reveal reveal-delay-2">
+          <div class="step-num">03</div>
+          <div class="step-icon-wrap"><div class="step-icon-inner"></div></div>
+          <div class="step-title">Staff reviews and approves</div>
+          <div class="step-desc">Nothing goes to the family without a human sign-off. Staff edits drafts, approves documents, and confirms communications.</div>
+        </div>
+        <div class="step reveal reveal-delay-3">
+          <div class="step-num">04</div>
+          <div class="step-icon-wrap"><div class="step-icon-inner"></div></div>
+          <div class="step-title">Family stays informed, automatically</div>
+          <div class="step-desc">Status updates send at key milestones. The family always knows where things stand — without your staff making manual calls.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="features">
+    <div class="container">
+      <div class="section-eyebrow reveal">Features</div>
+      <h2 class="section-headline reveal reveal-delay-1">Everything your back office needs.<br>Nothing it doesn't.</h2>
+      <div class="bento">
+        <div class="bento-card bento-1 reveal">
+          <div class="bento-tag">Obituary drafting</div>
+          <div class="bento-title">A first draft in the time it takes to make coffee</div>
+          <div class="bento-desc">Memoria takes the intake data — dates, occupation, family notes — and generates a warm, dignified first draft. Staff edits from a strong starting point instead of a blank page.</div>
+          <div class="bento-visual">
+            <div class="obit-preview">"Eleanor Grace Holloway, a devoted schoolteacher and tireless gardener, passed peacefully on August 19th surrounded by her family. For thirty-two years she taught third grade at Millbrook Elementary, where former students still return to share the lives she helped shape..."</div>
+            <div class="obit-badge"><div class="obit-badge-dot"></div>AI draft · Awaiting staff review</div>
+          </div>
+        </div>
+        <div class="bento-card bento-2 reveal reveal-delay-1">
+          <div class="bento-tag">Staff dashboard</div>
+          <div class="bento-title">Every open case, one view</div>
+          <div class="bento-desc">See what's active, what's pending your review, and which service dates are approaching — without digging through email or spreadsheets.</div>
+          <div class="stat-large">0<span style="color:var(--sage)">.</span></div>
+          <div class="stat-label">Missed family updates since you started using Memoria</div>
+        </div>
+        <div class="bento-card bento-3 reveal">
+          <div class="bento-tag">Family communication</div>
+          <div class="bento-title">Updates that feel personal, sent automatically</div>
+          <div class="bento-desc">Key milestones trigger warm, plain-language messages to the family — by email or SMS. Staff previews before anything sends.</div>
+          <div class="comm-timeline">
+            <div class="comm-item"><div class="comm-dot sent"></div><div class="comm-text">Intake confirmed — family welcomed</div><div class="comm-time">Aug 22 · 2:14pm</div></div>
+            <div class="comm-item"><div class="comm-dot sent"></div><div class="comm-text">Obituary draft shared for review</div><div class="comm-time">Aug 22 · 4:01pm</div></div>
+            <div class="comm-item"><div class="comm-dot sent"></div><div class="comm-text">Service details confirmed</div><div class="comm-time">Aug 23 · 10:22am</div></div>
+            <div class="comm-item"><div class="comm-dot"></div><div class="comm-text">Post-service check-in (scheduled)</div><div class="comm-time">Aug 29</div></div>
+          </div>
+        </div>
+        <div class="bento-card bento-4 reveal reveal-delay-1">
+          <div class="bento-tag">State compliance</div>
+          <div class="bento-title">Pre-filled paperwork for your state, every time</div>
+          <div class="bento-desc">Memoria knows your state's required forms and pre-fills them from intake data. Missing fields are flagged before you file — not after.</div>
+          <div class="state-list">
+            <div class="state-pill active">TX</div><div class="state-pill active">CA</div><div class="state-pill active">FL</div>
+            <div class="state-pill">NY</div><div class="state-pill">GA</div><div class="state-pill">OH</div>
+            <div class="state-pill">IL</div><div class="state-pill">PA</div><div class="state-pill">NC</div>
+            <div class="state-pill">AZ</div><div class="state-pill">+ 40 more</div>
+          </div>
+        </div>
+        <div class="bento-card bento-5 reveal">
+          <div class="bento-tag">Human-first</div>
+          <div class="bento-title">Nothing reaches a family without your approval</div>
+          <div class="bento-desc">Every document and message requires explicit staff sign-off. The AI prepares; your team decides.</div>
+        </div>
+        <div class="bento-card bento-6 reveal reveal-delay-1">
+          <div class="bento-tag">Multi-location</div>
+          <div class="bento-title">Built for chains and independents alike</div>
+          <div class="bento-desc">Each location runs independently with its own staff and cases. Owners see across all locations.</div>
+        </div>
+        <div class="bento-card bento-7 reveal reveal-delay-2">
+          <div class="bento-tag">Fast start</div>
+          <div class="bento-title">Live in one afternoon</div>
+          <div class="bento-desc">No migration, no long setup. Sign up, onboard your team, and run your first case the same day.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="compliance">
+    <div class="container">
+      <div class="compliance-grid">
+        <div class="compliance-visual reveal">
+          <div class="comp-header">
+            Compliance Library
+            <div class="comp-state-select">Texas ▾</div>
+          </div>
+          <div class="comp-body">
+            <div class="comp-form-list">
+              <div class="comp-form-item">
+                <div class="comp-check"><svg width="8" height="6" viewBox="0 0 8 6" fill="none"><path d="M1 3L3 5L7 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+                <div class="comp-form-name">Death Certificate Worksheet</div>
+                <div class="comp-form-status">Pre-filled</div>
+              </div>
+              <div class="comp-form-item">
+                <div class="comp-check"><svg width="8" height="6" viewBox="0 0 8 6" fill="none"><path d="M1 3L3 5L7 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+                <div class="comp-form-name">Burial Transit Permit</div>
+                <div class="comp-form-status">Pre-filled</div>
+              </div>
+              <div class="comp-form-item">
+                <div class="comp-check-empty"></div>
+                <div class="comp-form-name">Cremation Authorization Form</div>
+                <div class="comp-form-status missing">2 fields missing</div>
+              </div>
+              <div class="comp-form-item">
+                <div class="comp-check"><svg width="8" height="6" viewBox="0 0 8 6" fill="none"><path d="M1 3L3 5L7 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+                <div class="comp-form-name">Family Authorization Statement</div>
+                <div class="comp-form-status">Pre-filled</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="reveal reveal-delay-1">
+          <div class="section-eyebrow">State compliance library</div>
+          <h2 class="section-headline">Every state has different rules.<br>Memoria keeps track.</h2>
+          <div class="compliance-points">
+            <div><div class="comp-point-title">Select your state during onboarding</div><div class="comp-point-desc">Memoria loads the required forms for your state automatically. If you operate across state lines, add additional states at any time.</div></div>
+            <div><div class="comp-point-title">Forms pre-fill from intake data</div><div class="comp-point-desc">The data your staff collects during intake populates every required field across all compliance documents — without re-entry.</div></div>
+            <div><div class="comp-point-title">Missing fields flagged before you file</div><div class="comp-point-desc">If a required field is missing from the intake, Memoria flags it on the document before you download — not after you've submitted.</div></div>
+            <div><div class="comp-point-title">Templates managed centrally</div><div class="comp-point-desc">As regulations change, Memoria's compliance library is updated. You do not manage templates — you just use them.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="proof">
+    <div class="container">
+      <div class="proof-grid">
+        <div class="proof-item reveal">
+          <div class="proof-num">8<span>min</span></div>
+          <div class="proof-divider"></div>
+          <div class="proof-label">Average intake-to-documents time</div>
+          <div class="proof-sub">Down from 45+ minutes</div>
+        </div>
+        <div class="proof-item reveal reveal-delay-1">
+          <div class="proof-num">0<span>.</span></div>
+          <div class="proof-divider"></div>
+          <div class="proof-label">AI outputs sent to families without staff approval</div>
+          <div class="proof-sub">Human review is non-negotiable</div>
+        </div>
+        <div class="proof-item reveal reveal-delay-2">
+          <div class="proof-num">50<span>+</span></div>
+          <div class="proof-divider"></div>
+          <div class="proof-label">US states covered in the compliance library</div>
+          <div class="proof-sub">Including multi-state operators</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="pricing">
+    <div class="container">
+      <div style="text-align:center">
+        <div class="section-eyebrow reveal">Pricing</div>
+        <h2 class="section-headline reveal reveal-delay-1">Simple pricing.<br>No per-seat surprises.</h2>
+        <p class="section-sub reveal reveal-delay-2" style="margin:0 auto">Priced per location, not per user. Add your whole team without watching the bill go up.</p>
+      </div>
+      <div class="pricing-grid">
+        <div class="pricing-card reveal">
+          <div class="pricing-plan">Starter</div>
+          <div class="pricing-price">$399</div>
+          <div class="pricing-period">per location / month</div>
+          <ul class="pricing-features">
+            <li class="pricing-feature"><div class="pricing-check on"></div>Unlimited cases</li>
+            <li class="pricing-feature"><div class="pricing-check on"></div>AI obituary drafting</li>
+            <li class="pricing-feature"><div class="pricing-check on"></div>Family communication automation</li>
+            <li class="pricing-feature"><div class="pricing-check on"></div>1 state compliance library</li>
+            <li class="pricing-feature"><div class="pricing-check"></div>Multi-state support</li>
+            <li class="pricing-feature"><div class="pricing-check"></div>Multi-location dashboard</li>
+          </ul>
+          <a href="#" class="btn-secondary" style="width:100%;justify-content:center">Start free trial</a>
+          <div class="pricing-note">30 days free. No credit card required.</div>
+        </div>
+        <div class="pricing-card featured reveal reveal-delay-1">
+          <div class="pricing-plan sage">Growth · Most Popular</div>
+          <div class="pricing-price">$599</div>
+          <div class="pricing-period">per location / month</div>
+          <ul class="pricing-features">
+            <li class="pricing-feature"><div class="pricing-check on"></div>Everything in Starter</li>
+            <li class="pricing-feature"><div class="pricing-check on"></div>Multi-state compliance library</li>
+            <li class="pricing-feature"><div class="pricing-check on"></div>Multi-location dashboard</li>
+            <li class="pricing-feature"><div class="pricing-check on"></div>SMS family communications</li>
+            <li class="pricing-feature"><div class="pricing-check on"></div>Staff roles and permissions</li>
+            <li class="pricing-feature"><div class="pricing-check on"></div>Priority support</li>
+          </ul>
+          <a href="#" class="btn-primary" style="width:100%;justify-content:center">Start free trial</a>
+          <div class="pricing-note">30 days free. No credit card required.</div>
+        </div>
+        <div class="pricing-card reveal reveal-delay-2">
+          <div class="pricing-plan">Enterprise</div>
+          <div class="pricing-price" style="font-size:36px;margin-top:8px">Custom</div>
+          <div class="pricing-period">for chains and groups</div>
+          <ul class="pricing-features">
+            <li class="pricing-feature"><div class="pricing-check on"></div>Everything in Growth</li>
+            <li class="pricing-feature"><div class="pricing-check on"></div>Unlimited locations</li>
+            <li class="pricing-feature"><div class="pricing-check on"></div>Custom compliance templates</li>
+            <li class="pricing-feature"><div class="pricing-check on"></div>Dedicated onboarding</li>
+            <li class="pricing-feature"><div class="pricing-check on"></div>SLA and uptime guarantee</li>
+            <li class="pricing-feature"><div class="pricing-check on"></div>Custom integrations</li>
+          </ul>
+          <a href="#" class="btn-secondary" style="width:100%;justify-content:center">Book a call</a>
+          <div class="pricing-note">Volume discounts available for 5+ locations.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="container">
+      <div style="text-align:center">
+        <div class="section-eyebrow reveal">Questions</div>
+        <h2 class="section-headline reveal reveal-delay-1">Straightforward answers</h2>
+      </div>
+      <div class="faq-list">
+        <div class="faq-item reveal">
+          <button class="faq-question">Does anything send to a family without my staff approving it?<span class="faq-toggle">+</span></button>
+          <div class="faq-answer">No. Every AI-generated document — obituary, compliance form, or family communication — requires explicit staff approval before it goes anywhere. The AI prepares drafts. Your team makes every decision that reaches a family.</div>
+        </div>
+        <div class="faq-item reveal reveal-delay-1">
+          <button class="faq-question">How does the obituary drafting actually work?<span class="faq-toggle">+</span></button>
+          <div class="faq-answer">When a case is created, Memoria uses the intake data — name, dates, occupation, family notes — to generate a first draft. Your staff edits it in the app and approves it before sharing with the family. The draft is a starting point, not a final product. Staff always have the last word.</div>
+        </div>
+        <div class="faq-item reveal reveal-delay-2">
+          <button class="faq-question">What if my state's compliance forms are not in the library yet?<span class="faq-toggle">+</span></button>
+          <div class="faq-answer">Contact us. We add new state templates regularly and can prioritize your state if you need it for onboarding. Enterprise plans include custom compliance template support.</div>
+        </div>
+        <div class="faq-item reveal reveal-delay-3">
+          <button class="faq-question">We operate across two states. Can Memoria handle that?<span class="faq-toggle">+</span></button>
+          <div class="faq-answer">Yes. On the Growth and Enterprise plans you can add multiple states to your account. Each case is associated with a state, and Memoria pulls the right compliance forms automatically based on that.</div>
+        </div>
+        <div class="faq-item reveal reveal-delay-4">
+          <button class="faq-question">How long does setup take?<span class="faq-toggle">+</span></button>
+          <div class="faq-answer">Most funeral homes are running their first case in Memoria the same afternoon they sign up. There is no migration, no lengthy configuration, and no implementation project. You sign up, onboard your team, select your state, and start.</div>
+        </div>
+        <div class="faq-item reveal reveal-delay-5">
+          <button class="faq-question">Is family data secure?<span class="faq-toggle">+</span></button>
+          <div class="faq-answer">Yes. All data is encrypted at rest and in transit. Staff can only see cases belonging to their location — there is no cross-account data access. Family and deceased personal information is never used for model training or shared with third parties.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="cta">
+    <div class="container">
+      <div class="cta-eyebrow reveal">For the people who show up when it's hardest</div>
+      <h2 class="cta-headline reveal reveal-delay-1">Give your team time to do<br>what only they can do.</h2>
+      <p class="cta-sub reveal reveal-delay-2">The paperwork does not need your best people. Memoria handles it, so they can focus on the families who need them.</p>
+      <div class="cta-actions reveal reveal-delay-3">
+        <a href="#" class="btn-primary">Start free trial</a>
+        <a href="#" class="btn-secondary">Book a demo</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <div>
+          <a href="#" class="footer-logo">Memoria<span></span></a>
+          <div class="footer-tagline">Back-office AI for independent funeral homes</div>
+        </div>
+        <div class="footer-links">
+          <div>
+            <div class="footer-col-title">Product</div>
+            <ul class="footer-col-links">
+              <li><a href="#">Features</a></li>
+              <li><a href="#">Compliance Library</a></li>
+              <li><a href="#">Pricing</a></li>
+              <li><a href="#">Changelog</a></li>
+            </ul>
+          </div>
+          <div>
+            <div class="footer-col-title">Company</div>
+            <ul class="footer-col-links">
+              <li><a href="#">About</a></li>
+              <li><a href="#">Privacy</a></li>
+              <li><a href="#">Terms</a></li>
+              <li><a href="#">Contact</a></li>
+            </ul>
+          </div>
+          <div>
+            <div class="footer-col-title">Support</div>
+            <ul class="footer-col-links">
+              <li><a href="#">Documentation</a></li>
+              <li><a href="#">Book a demo</a></li>
+              <li><a href="#">Status</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 Memoria. All rights reserved.</span>
+        <span>Built for independent funeral homes worldwide.</span>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

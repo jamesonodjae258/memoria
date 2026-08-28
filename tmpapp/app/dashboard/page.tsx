@@ -2,6 +2,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import CaseDashboardClient from '@/components/cases/CaseDashboardClient'
+import { getDemoCases } from '@/lib/demo-cases'
 import type { CaseRecord, Document } from '@/types'
 
 export default async function DashboardPage() {
@@ -26,43 +27,48 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
-  // 1. Fetch staff profile & funeral home (RLS scoped)
+  // 1 & 2. Fetch staff profile, funeral home, and cases concurrently (RLS scoped)
   let funeralHomeName = 'Grace & Peaceful Memorial Home'
   let staffName = 'Sarah Jenkins (Director)'
-
-  if (user && !isDemoSession) {
-    const { data: profile } = await supabase
-      .from('staff_profiles')
-      .select('*, funeral_homes(*)')
-      .eq('user_id', user.id)
-      .maybeSingle()
-
-    if (!profile || !profile.funeral_homes) {
-      // User has registered auth credentials but has not completed Step 1
-      redirect('/onboarding/step-1')
-    }
-
-    const currentStep = profile.funeral_homes?.onboarding_step ?? 1
-    if (currentStep < 4) {
-      redirect(`/onboarding/step-${currentStep}`)
-    }
-
-    funeralHomeName = profile.funeral_homes?.name ?? funeralHomeName
-    staffName = profile.full_name ?? user.email ?? staffName
-  }
-
-
-  // 2. Fetch cases (RLS automatically restricts to staff member's funeral_home_id)
   let cases: CaseRecord[] = []
   let documentsMap: Record<string, Document[]> = {}
 
   if (user) {
-    const { data: casesData } = await supabase
-      .from('cases')
-      .select('*')
-      .order('created_at', { ascending: false })
+    if (!isDemoSession) {
+      const [profileRes, casesRes] = await Promise.all([
+        supabase
+          .from('staff_profiles')
+          .select('*, funeral_homes(*)')
+          .eq('user_id', user.id)
+          .maybeSingle(),
+        supabase
+          .from('cases')
+          .select('*')
+          .order('created_at', { ascending: false }),
+      ])
 
-    cases = (casesData || []) as CaseRecord[]
+      const profile = profileRes.data
+      if (!profile || !profile.funeral_homes) {
+        // User has registered auth credentials but has not completed Step 1
+        redirect('/onboarding/step-1')
+      }
+
+      const currentStep = profile.funeral_homes?.onboarding_step ?? 1
+      if (currentStep < 4) {
+        redirect(`/onboarding/step-${currentStep}`)
+      }
+
+      funeralHomeName = profile.funeral_homes?.name ?? funeralHomeName
+      staffName = profile.full_name ?? user.email ?? staffName
+      cases = (casesRes.data || []) as CaseRecord[]
+    } else {
+      const { data: casesData } = await supabase
+        .from('cases')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      cases = (casesData || []) as CaseRecord[]
+    }
 
     const caseIds = cases.map((c) => c.id)
     if (caseIds.length > 0) {
@@ -83,57 +89,7 @@ export default async function DashboardPage() {
 
   // Fallback demo cases ONLY for unauthenticated demo bypass mode or unconfigured preview instances
   if (cases.length === 0 && (isDemoSession || !isConfigured)) {
-    const now = new Date()
-
-    const in24h = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString()
-    const in5days = new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000).toISOString()
-
-    cases = [
-      {
-        id: 'test_case_demo',
-        funeral_home_id: 'demo-home-id',
-        created_by: 'demo-user-id',
-        deceased_name: 'Margaret Helen Thompson',
-        date_of_birth: '1942-05-14',
-        date_of_death: '2026-07-18',
-        place_of_death: 'St. Jude Memorial Hospital, Austin, TX',
-        occupation: 'Elementary School Teacher for 35 years',
-        additional_notes: 'Loved gardening, baking peach cobbler, and spending time with her 4 grandchildren.',
-        family_contact_name: 'Robert Thompson',
-        family_contact_email: 'family.thompson@example.com',
-        family_contact_phone: '+15550192834',
-        relationship_to_deceased: 'Son',
-        service_type: 'burial',
-        service_date: in24h,
-        service_location: 'Grace Community Chapel',
-        sms_opt_in: true,
-        status: 'documents_pending',
-        created_at: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        updated_at: now.toISOString(),
-      },
-      {
-        id: 'demo_case_2',
-        funeral_home_id: 'demo-home-id',
-        created_by: 'demo-user-id',
-        deceased_name: 'Arthur James Pendelton',
-        date_of_birth: '1938-11-20',
-        date_of_death: '2026-07-19',
-        place_of_death: 'Austin, TX',
-        occupation: 'Architect',
-        additional_notes: 'Passionate about woodworking and classical jazz music.',
-        family_contact_name: 'Eleanor Pendelton',
-        family_contact_email: 'eleanor.p@example.com',
-        family_contact_phone: '+15550198822',
-        relationship_to_deceased: 'Daughter',
-        service_type: 'cremation',
-        service_date: in5days,
-        service_location: 'Memorial Gardens',
-        sms_opt_in: false,
-        status: 'intake',
-        created_at: now.toISOString(),
-        updated_at: now.toISOString(),
-      },
-    ]
+    cases = getDemoCases()
   }
 
   return (

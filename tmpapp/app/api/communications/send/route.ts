@@ -117,90 +117,104 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // SEND MODE: Perform send operations & log to communication_logs
-    const results: { channel: string; success: boolean; error?: string }[] = []
+    // SEND MODE: Perform send operations & log to communication_logs in parallel
+    const sendTasks: Promise<{ channel: string; success: boolean; error?: string }>[] = []
 
-    // 1. Email Send
+    // 1. Email Dispatch Task
     if (channel === 'email' || channel === 'both') {
-      if (!c.family_contact_email) {
-        const errorMsg = 'Family contact email address is not recorded on this case.'
-        await serviceClient.from('communication_logs').insert({
-          case_id,
-          channel: 'email',
-          recipient: 'Not provided',
-          subject: emailRender.subject,
-          message_content: emailRender.text,
-          status: 'failed',
-          error_message: errorMsg,
-        })
-        results.push({ channel: 'email', success: false, error: errorMsg })
-      } else {
-        try {
-          await sendEmail({
-            to: c.family_contact_email,
-            subject: emailRender.subject,
-            html: emailRender.html,
-            text: emailRender.text,
-          })
+      sendTasks.push(
+        (async () => {
+          if (!c.family_contact_email) {
+            const errorMsg = 'Family contact email address is not recorded on this case.'
+            await serviceClient.from('communication_logs').insert({
+              case_id,
+              channel: 'email',
+              recipient: 'Not provided',
+              subject: emailRender.subject,
+              message_content: emailRender.text,
+              status: 'failed',
+              error_message: errorMsg,
+            })
+            return { channel: 'email', success: false, error: errorMsg }
+          }
+          try {
+            await sendEmail({
+              to: c.family_contact_email,
+              subject: emailRender.subject,
+              html: emailRender.html,
+              text: emailRender.text,
+            })
 
-          await serviceClient.from('communication_logs').insert({
-            case_id,
-            channel: 'email',
-            recipient: c.family_contact_email,
-            subject: emailRender.subject,
-            message_content: emailRender.text,
-            status: 'sent',
-            sent_at: new Date().toISOString(),
-          })
-          results.push({ channel: 'email', success: true })
-        } catch (err: unknown) {
-          const errorMsg = err instanceof Error ? err.message : 'Email dispatch failed.'
-          await serviceClient.from('communication_logs').insert({
-            case_id,
-            channel: 'email',
-            recipient: c.family_contact_email,
-            subject: emailRender.subject,
-            message_content: emailRender.text,
-            status: 'failed',
-            error_message: errorMsg,
-          })
-          results.push({ channel: 'email', success: false, error: errorMsg })
-        }
-      }
+            await serviceClient.from('communication_logs').insert({
+              case_id,
+              channel: 'email',
+              recipient: c.family_contact_email,
+              subject: emailRender.subject,
+              message_content: emailRender.text,
+              status: 'sent',
+              sent_at: new Date().toISOString(),
+            })
+            return { channel: 'email', success: true }
+          } catch (err: unknown) {
+            const errorMsg = err instanceof Error ? err.message : 'Email dispatch failed.'
+            await serviceClient.from('communication_logs').insert({
+              case_id,
+              channel: 'email',
+              recipient: c.family_contact_email,
+              subject: emailRender.subject,
+              message_content: emailRender.text,
+              status: 'failed',
+              error_message: errorMsg,
+            })
+            return { channel: 'email', success: false, error: errorMsg }
+          }
+        })()
+      )
     }
 
-    // 2. SMS Send
+    // 2. SMS Dispatch Task
     if (channel === 'sms' || channel === 'both') {
-      try {
-        await sendSMS({
-          caseData: c,
-          body: smsRender.body,
-        })
+      sendTasks.push(
+        (async () => {
+          try {
+            await sendSMS({
+              caseData: c,
+              body: smsRender.body,
+            })
 
-        await serviceClient.from('communication_logs').insert({
-          case_id,
-          channel: 'sms',
-          recipient: c.family_contact_phone || 'Unknown',
-          subject: null,
-          message_content: smsRender.body,
-          status: 'sent',
-          sent_at: new Date().toISOString(),
-        })
-        results.push({ channel: 'sms', success: true })
-      } catch (err: unknown) {
-        const errorMsg = err instanceof Error ? err.message : 'SMS dispatch failed.'
-        await serviceClient.from('communication_logs').insert({
-          case_id,
-          channel: 'sms',
-          recipient: c.family_contact_phone || 'Not provided',
-          subject: null,
-          message_content: smsRender.body,
-          status: 'failed',
-          error_message: errorMsg,
-        })
-        results.push({ channel: 'sms', success: false, error: errorMsg })
-      }
+            await serviceClient.from('communication_logs').insert({
+              case_id,
+              channel: 'sms',
+              recipient: c.family_contact_phone || 'Unknown',
+              subject: null,
+              message_content: smsRender.body,
+              status: 'sent',
+              sent_at: new Date().toISOString(),
+            })
+            return { channel: 'sms', success: true }
+          } catch (err: unknown) {
+            const errorMsg = err instanceof Error ? err.message : 'SMS dispatch failed.'
+            await serviceClient.from('communication_logs').insert({
+              case_id,
+              channel: 'sms',
+              recipient: c.family_contact_phone || 'Not provided',
+              subject: null,
+              message_content: smsRender.body,
+              status: 'failed',
+              error_message: errorMsg,
+            })
+            return { channel: 'sms', success: false, error: errorMsg }
+          }
+        })()
+      )
     }
+
+    const taskResults = await Promise.allSettled(sendTasks)
+    const results = taskResults.map((r) =>
+      r.status === 'fulfilled'
+        ? r.value
+        : { channel: 'unknown', success: false, error: 'Task rejected unexpectedly.' }
+    )
 
     // Check if any channel failed
     const failedChannel = results.find((r) => !r.success)

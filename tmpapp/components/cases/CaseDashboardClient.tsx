@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useDeferredValue, useMemo } from 'react'
 import Link from 'next/link'
 import CaseCard from './CaseCard'
 import type { CaseRecord, Document } from '@/types'
@@ -23,48 +23,71 @@ export default function CaseDashboardClient({
   staffName,
 }: CaseDashboardClientProps) {
   const [searchQuery, setSearchQuery] = useState('')
+  const deferredSearch = useDeferredValue(searchQuery)
   const [activeTab, setActiveTab] = useState<FilterTab>('all')
 
-  // Filter cases based on search and tab selection
-  const filteredCases = cases.filter((c) => {
-    const query = searchQuery.toLowerCase().trim()
-    const matchesSearch =
-      query === '' ||
-      c.deceased_name.toLowerCase().includes(query) ||
-      c.family_contact_name.toLowerCase().includes(query) ||
-      (c.service_location && c.service_location.toLowerCase().includes(query))
+  // Calculate metric counts in a single pass (js-combine-iterations)
+  const { counts, activeCount, pendingReviewCount, completedCount, servicesScheduledCount } =
+    useMemo(() => {
+      let active = 0
+      let pending_review = 0
+      let completed = 0
+      let servicesScheduled = 0
 
-    if (!matchesSearch) return false
+      for (const c of cases) {
+        if (c.status === 'completed') {
+          completed++
+        } else {
+          active++
+          if (c.status === 'documents_pending' || c.status === 'family_review') {
+            pending_review++
+          }
+          if (c.service_date) {
+            servicesScheduled++
+          }
+        }
+      }
 
-    if (activeTab === 'all') return true
-    if (activeTab === 'active') {
-      return c.status !== 'completed'
-    }
-    if (activeTab === 'pending_review') {
-      return c.status === 'documents_pending' || c.status === 'family_review'
-    }
-    if (activeTab === 'completed') {
-      return c.status === 'completed'
-    }
+      return {
+        counts: {
+          all: cases.length,
+          active,
+          pending_review,
+          completed,
+        },
+        activeCount: active,
+        pendingReviewCount: pending_review,
+        completedCount: completed,
+        servicesScheduledCount: servicesScheduled,
+      }
+    }, [cases])
 
-    return true
-  })
+  // Filter cases based on deferred search and tab selection (rerender-use-deferred-value)
+  const filteredCases = useMemo(() => {
+    const query = deferredSearch.toLowerCase().trim()
+    return cases.filter((c) => {
+      const matchesSearch =
+        query === '' ||
+        c.deceased_name.toLowerCase().includes(query) ||
+        c.family_contact_name.toLowerCase().includes(query) ||
+        Boolean(c.service_location && c.service_location.toLowerCase().includes(query))
 
-  // Metric counts
-  const totalCases = cases.length
-  const activeCount = cases.filter((c) => c.status !== 'completed').length
-  const pendingReviewCount = cases.filter(
-    (c) => c.status === 'documents_pending' || c.status === 'family_review'
-  ).length
-  const completedCount = cases.filter((c) => c.status === 'completed').length
-  const servicesScheduledCount = cases.filter((c) => Boolean(c.service_date) && c.status !== 'completed').length
+      if (!matchesSearch) return false
 
-  const counts = {
-    all: totalCases,
-    active: activeCount,
-    pending_review: pendingReviewCount,
-    completed: completedCount,
-  }
+      if (activeTab === 'all') return true
+      if (activeTab === 'active') {
+        return c.status !== 'completed'
+      }
+      if (activeTab === 'pending_review') {
+        return c.status === 'documents_pending' || c.status === 'family_review'
+      }
+      if (activeTab === 'completed') {
+        return c.status === 'completed'
+      }
+
+      return true
+    })
+  }, [cases, deferredSearch, activeTab])
 
   return (
     <div className="min-h-screen bg-[#F8F7F4] text-[#1A1310] font-body flex flex-col selection:bg-[#A8935D] selection:text-white">

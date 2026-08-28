@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import Link from 'next/link'
 import ObituaryEditor from '@/components/obituary/ObituaryEditor'
+import { getDemoCaseById, getDemoDocumentForCase } from '@/lib/demo-cases'
 import type { CaseRecord, Document } from '@/types'
 
 export default async function CaseObituaryPage({
@@ -34,51 +35,35 @@ export default async function CaseObituaryPage({
   let document: Document | null = null
 
   if (user) {
-    const { data: caseData } = await supabase
-      .from('cases')
-      .select('*')
-      .eq('id', params.id)
-      .single()
-
-    if (caseData) {
-      c = caseData as CaseRecord
-      const { data: docData } = await supabase
+    const [caseRes, docRes] = await Promise.all([
+      supabase
+        .from('cases')
+        .select('*')
+        .eq('id', params.id)
+        .maybeSingle(),
+      supabase
         .from('documents')
         .select('*')
         .eq('case_id', params.id)
         .eq('type', 'obituary')
         .order('version', { ascending: false })
         .limit(1)
-        .maybeSingle()
+        .maybeSingle(),
+    ])
 
-      document = docData ? (docData as Document) : null
+    if (caseRes.data) {
+      c = caseRes.data as CaseRecord
+    }
+    if (docRes.data) {
+      document = docRes.data as Document
     }
   }
 
   // Demo fallback
   if (!c) {
-    const now = new Date()
-    c = {
-      id: params.id || 'test_case_demo',
-      funeral_home_id: 'demo-home-id',
-      created_by: 'demo-user-id',
-      deceased_name: 'Margaret Helen Thompson',
-      date_of_birth: '1942-05-14',
-      date_of_death: '2026-07-18',
-      place_of_death: 'St. Jude Memorial Hospital, Austin, TX',
-      occupation: 'Elementary School Teacher for 35 years',
-      additional_notes: 'Loved gardening, baking peach cobbler, and spending time with her 4 grandchildren.',
-      family_contact_name: 'Robert Thompson',
-      family_contact_email: 'family.thompson@example.com',
-      family_contact_phone: '+15550192834',
-      relationship_to_deceased: 'Son',
-      service_type: 'burial',
-      service_date: new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString(),
-      service_location: 'Grace Community Chapel',
-      sms_opt_in: true,
-      status: 'documents_pending',
-      created_at: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-      updated_at: now.toISOString(),
+    c = getDemoCaseById(params.id)
+    if (!document) {
+      document = getDemoDocumentForCase(params.id)
     }
   }
 

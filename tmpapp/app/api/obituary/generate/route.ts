@@ -1,18 +1,29 @@
 import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase/server'
 import { generateObituary, ObituaryLength, ObituaryTone } from '@/lib/openai/obituary'
+import { getDemoCaseById } from '@/lib/demo-cases'
+import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 import type { CaseRecord } from '@/types'
 
 export async function POST(request: NextRequest) {
   try {
-    // 1. Authenticate user
-    const supabase = createServerSupabaseClient()
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
+    const isDemoSession = cookies().get('gp_demo_session')?.value === 'true'
+    const isConfigured = Boolean(
+      process.env.NEXT_PUBLIC_SUPABASE_URL &&
+        !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('placeholder')
+    )
 
-    if (authError || !user) {
+    // 1. Authenticate user or check demo session
+    const supabase = createServerSupabaseClient()
+    let user = null
+    try {
+      const { data } = await supabase.auth.getUser()
+      user = data?.user || null
+    } catch {
+      // Graceful fallback for demo/unconfigured Supabase
+    }
+
+    if (!user && !isDemoSession && isConfigured) {
       return NextResponse.json(
         { error: 'You must be signed in to generate an obituary.' },
         { status: 401 }
@@ -33,26 +44,44 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 2. Fetch case details server-side using service role
-    const serviceClient = createServiceRoleClient()
-    const { data: caseData, error: caseError } = await serviceClient
-      .from('cases')
-      .select('*')
-      .eq('id', case_id)
-      .single()
+    // 2. Fetch case details (from Supabase or demo dataset)
+    let caseData: CaseRecord | null = null
 
-    if (caseError || !caseData) {
-      return NextResponse.json(
-        { error: 'Case not found.' },
-        { status: 404 }
-      )
+    if (user && isConfigured) {
+      const serviceClient = createServiceRoleClient()
+      const { data, error: caseError } = await serviceClient
+        .from('cases')
+        .select('*')
+        .eq('id', case_id)
+        .single()
+
+      if (!caseError && data) {
+        caseData = data as CaseRecord
+      }
     }
 
-    // 3. Call OpenAI to generate obituary
-    const draftContent = await generateObituary(caseData as CaseRecord, {
+    if (!caseData) {
+      caseData = getDemoCaseById(case_id)
+    }
+
+    // 3. Call AI engine to generate obituary
+    const draftContent = await generateObituary(caseData, {
       length,
       tone,
     })
+
+    // If demo session or unconfigured, return generated draft directly
+    if (isDemoSession || !isConfigured || !user) {
+      return NextResponse.json(
+        {
+          document_id: `demo-doc-${case_id}`,
+          draft_content: draftContent,
+        },
+        { status: 200 }
+      )
+    }
+
+    const serviceClient = createServiceRoleClient()
 
     // 4. Check if an obituary document already exists for this case
     const { data: existingDoc } = await serviceClient

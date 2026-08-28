@@ -25,9 +25,9 @@ export default function ToneControls({
     <div className="bg-white p-5 rounded border border-[#E5E2DC] shadow-sm space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-4">
         {/* Length selector */}
-        <div>
+        <div className="min-w-0">
           <span className="field-label mb-2">Tribute Length</span>
-          <div className="inline-flex rounded p-1 bg-[#FAF9F7] border border-[#E5E2DC] gap-1 text-xs">
+          <div className="flex flex-wrap rounded p-1 bg-[#FAF9F7] border border-[#E5E2DC] gap-1 text-xs">
             {(['short', 'standard', 'long'] as ObituaryLength[]).map((l) => (
               <button
                 key={l}
@@ -43,9 +43,9 @@ export default function ToneControls({
         </div>
 
         {/* Tone selector */}
-        <div>
+        <div className="min-w-0">
           <span className="field-label mb-2">Narrative Tone</span>
-          <div className="inline-flex rounded p-1 bg-[#FAF9F7] border border-[#E5E2DC] gap-1 text-xs">
+          <div className="flex flex-wrap rounded p-1 bg-[#FAF9F7] border border-[#E5E2DC] gap-1 text-xs">
             {(['formal', 'warm'] as ObituaryTone[]).map((t) => (
               <button
                 key={t}
@@ -54,7 +54,7 @@ export default function ToneControls({
                 onClick={() => onToneChange(t)}
                 className={`tab-btn capitalize focus-ring ${tone === t ? 'tab-active' : 'tab-inactive'}`}
               >
-                {t === 'formal' ? 'Formal / Traditional' : 'Warm / Celebratory'}
+                {t === 'formal' ? 'Formal' : 'Warm / Celebratory'}
               </button>
             ))}
           </div>
