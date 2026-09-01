@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Lora, DM_Sans } from "next/font/google";
+import { Lora, DM_Sans, Instrument_Serif } from "next/font/google";
 import { ToastProvider } from "@/components/ui/Toast";
 import "./globals.css";
 
@@ -17,6 +17,13 @@ const dmSans = DM_Sans({
   weight: ["400", "500", "600", "700"],
 });
 
+const instrumentSerif = Instrument_Serif({
+  subsets: ["latin"],
+  variable: "--font-instrument-serif",
+  display: "swap",
+  weight: ["400"],
+});
+
 export const metadata: Metadata = {
   title: "Memoria — Funeral Operations Suite",
   description:
@@ -31,7 +38,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${lora.variable} ${dmSans.variable} font-body antialiased`}
+        className={`${lora.variable} ${dmSans.variable} ${instrumentSerif.variable} font-body antialiased`}
       >
         <ToastProvider>{children}</ToastProvider>
       </body>

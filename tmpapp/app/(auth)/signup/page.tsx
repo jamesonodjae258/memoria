@@ -118,18 +118,10 @@ export default function SignUpPage() {
       <div className="card-premium p-8 relative">
         <div className="brass-inlay absolute top-0 left-0 right-0" />
 
-        {/* Tab / Mode info */}
-        <div className="flex items-center justify-between border-b border-[#E5E2DC] pb-4 mb-6">
-          <div>
-            <h2 className="text-sm font-semibold text-[#2C221E]">Sign Up</h2>
-            <p className="text-xs text-[#8C7E6E]">Step 0 of 4 — Create credentials</p>
-          </div>
-          <Link
-            href="/login"
-            className="text-xs font-semibold text-[#A8935D] hover:text-[#2C221E] transition-colors"
-          >
-            Already have an account?
-          </Link>
+        {/* Step info header */}
+        <div className="border-b border-[#E5E2DC] pb-4 mb-6">
+          <h2 className="text-sm font-semibold text-[#2C221E]">Sign Up</h2>
+          <p className="text-xs text-[#8C7E6E]">Step 0 of 4 — Create credentials</p>
         </div>
 
         {error && (
@@ -209,7 +201,16 @@ export default function SignUpPage() {
           </div>
         </form>
 
-        <div className="mt-6 pt-5 border-t border-[#E5E2DC] text-center">
+        <div className="mt-6 pt-5 border-t border-[#E5E2DC] text-center space-y-3">
+          <p className="text-xs text-[#6B5E50]">
+            Already have an account?{' '}
+            <Link
+              href="/login"
+              className="font-semibold text-[#A8935D] hover:text-[#2C221E] transition-colors"
+            >
+              Log in
+            </Link>
+          </p>
           <p className="text-[11px] text-[#8C7E6E]">
             By continuing, you agree to Memoria&apos;s standard terms and privacy practices.
           </p>
