@@ -8,6 +8,7 @@ interface FuneralHomeProfile {
   id: string
   name: string
   phone: string | null
+  contact_email?: string | null
   address: string | null
   city: string | null
   state: string | null
@@ -44,6 +45,7 @@ export default function DirectorSettingsPage() {
   // Facility Form state
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
+  const [contactEmail, setContactEmail] = useState('')
   const [address, setAddress] = useState('')
   const [city, setCity] = useState('')
   const [stateCode, setStateCode] = useState('')
@@ -73,6 +75,7 @@ export default function DirectorSettingsPage() {
             setProfile(pData.funeralHome)
             setName(pData.funeralHome.name || '')
             setPhone(pData.funeralHome.phone || '')
+            setContactEmail(pData.funeralHome.contact_email || '')
             setAddress(pData.funeralHome.address || '')
             setCity(pData.funeralHome.city || '')
             setStateCode(pData.funeralHome.state || '')
@@ -110,6 +113,7 @@ export default function DirectorSettingsPage() {
         body: JSON.stringify({
           name,
           phone,
+          contact_email: contactEmail,
           address,
           city,
           state: stateCode,
@@ -369,6 +373,21 @@ export default function DirectorSettingsPage() {
                   className="w-full bg-[#FAF9F7] border border-[#E5E2DC] rounded p-2.5 text-xs text-[#2C221E] focus:bg-white focus:border-[#A8935D] focus:outline-none transition-colors"
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="field-label">Email Address Families Will Reply To</label>
+              <input
+                type="email"
+                value={contactEmail}
+                onChange={(e) => setContactEmail(e.target.value)}
+                disabled={!isDirector || isSavingFacility}
+                placeholder="info@yourfuneralhome.com"
+                className="w-full bg-[#FAF9F7] border border-[#E5E2DC] rounded p-2.5 text-xs text-[#2C221E] focus:bg-white focus:border-[#A8935D] focus:outline-none transition-colors"
+              />
+              <p className="text-[11px] text-[#8C7E6E] mt-1">
+                This public contact email appears as the Reply-To address on all outbound messages sent to families.
+              </p>
             </div>
 
             <div>

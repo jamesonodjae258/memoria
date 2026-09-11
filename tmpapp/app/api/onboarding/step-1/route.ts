@@ -8,6 +8,7 @@ export async function POST(request: NextRequest) {
     const {
       funeral_home_name,
       phone,
+      contact_email,
       street_address,
       city,
       state,
@@ -18,6 +19,14 @@ export async function POST(request: NextRequest) {
     if (!funeral_home_name || !funeral_home_name.trim()) {
       return NextResponse.json(
         { error: 'Funeral home name is required.' },
+        { status: 400 }
+      )
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!contact_email || !contact_email.trim() || !emailRegex.test(contact_email.trim())) {
+      return NextResponse.json(
+        { error: 'A valid public contact email address is required (e.g. info@yourfuneralhome.com).' },
         { status: 400 }
       )
     }
@@ -64,6 +73,7 @@ export async function POST(request: NextRequest) {
         .update({
           name: funeral_home_name.trim(),
           phone: phone?.trim() || null,
+          contact_email: contact_email.trim().toLowerCase(),
           street_address: street_address?.trim() || null,
           city: city?.trim() || null,
           state: state?.trim() || 'TX',
@@ -78,6 +88,7 @@ export async function POST(request: NextRequest) {
         .insert({
           name: funeral_home_name.trim(),
           phone: phone?.trim() || null,
+          contact_email: contact_email.trim().toLowerCase(),
           street_address: street_address?.trim() || null,
           city: city?.trim() || null,
           state: state?.trim() || 'TX',

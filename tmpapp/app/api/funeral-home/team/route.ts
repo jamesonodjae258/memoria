@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
 
     const { data: profile } = await adminClient
       .from('staff_profiles')
-      .select('role, funeral_home_id, funeral_homes(name)')
+      .select('role, funeral_home_id, funeral_homes(name, contact_email)')
       .eq('user_id', userId)
       .maybeSingle()
 
@@ -139,6 +139,7 @@ export async function POST(request: NextRequest) {
 
     const homeId = profile?.funeral_home_id
     const homeName = (profile?.funeral_homes as any)?.name || 'Our Funeral Home'
+    const replyTo = (profile?.funeral_homes as any)?.contact_email || 'info@graceandpeaceful.com'
 
     if (!homeId || homeId === 'demo-home-id') {
       return NextResponse.json({
@@ -178,7 +179,6 @@ export async function POST(request: NextRequest) {
       await sendEmail({
         to: email.trim().toLowerCase(),
         subject: `You've been invited to join ${homeName} on Memoria`,
-        text: `Hello,\n\nYou have been invited to join the staff team at ${homeName} as a ${role}.\n\nTo accept this invitation and create your account, visit:\n${signupUrl}\n\nWarm regards,\n${homeName} & Memoria Team`,
         html: `
           <div style="font-family: sans-serif; color: #2A1F1B; line-height: 1.6; max-width: 600px; margin: 0 auto; padding: 24px; border-top: 3px solid #A8935D; background: #FAF9F7;">
             <h2 style="font-size: 20px; font-weight: 600; color: #2C221E; margin-bottom: 12px;">Staff Team Invitation</h2>
@@ -192,6 +192,8 @@ export async function POST(request: NextRequest) {
             <p style="font-size: 12px; color: #8C7E6E; margin-top: 24px;">If you were not expecting this invitation, you may safely ignore this email.</p>
           </div>
         `,
+        funeralHomeName: homeName,
+        funeralHomeReplyTo: replyTo,
       })
     } catch (mailErr) {
       console.warn('Resend mail warning:', mailErr)

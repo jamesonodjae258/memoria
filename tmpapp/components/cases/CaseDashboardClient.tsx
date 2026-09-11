@@ -14,6 +14,7 @@ interface CaseDashboardClientProps {
   documentsMap: Record<string, Document[]>
   funeralHomeName: string
   staffName: string
+  hasContactEmail?: boolean
 }
 
 export default function CaseDashboardClient({
@@ -21,6 +22,7 @@ export default function CaseDashboardClient({
   documentsMap,
   funeralHomeName,
   staffName,
+  hasContactEmail = true,
 }: CaseDashboardClientProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const deferredSearch = useDeferredValue(searchQuery)
@@ -100,6 +102,27 @@ export default function CaseDashboardClient({
 
       {/* Main Workspace Area */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+        {/* Missing Public Contact Email Banner */}
+        {!hasContactEmail && (
+          <div className="mb-6 bg-[#FBF3DB] border-l-4 border-[#C89000] rounded-r p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+            <div className="flex items-center gap-2.5">
+              <span className="text-[#956400] text-base font-bold">⚠</span>
+              <Link
+                href="/dashboard/settings"
+                className="text-sm font-medium text-[#956400] hover:underline"
+              >
+                Add your public email address to personalise family communications &rarr;
+              </Link>
+            </div>
+            <Link
+              href="/dashboard/settings"
+              className="text-xs font-semibold text-[#956400] hover:text-[#734D00] uppercase tracking-wider whitespace-nowrap bg-white/70 hover:bg-white px-3 py-1.5 rounded border border-[#E5D7B7] transition-colors self-start sm:self-auto"
+            >
+              Go to Settings &rarr;
+            </Link>
+          </div>
+        )}
+
         {/* Page Title Bar & Action */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>

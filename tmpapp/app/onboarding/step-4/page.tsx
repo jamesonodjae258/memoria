@@ -41,6 +41,7 @@ export default function OnboardingStep4Page() {
   const totalStates = (data?.states?.length || 1)
   const staffCount = data?.invitedStaff?.length || 0
   const ownerName = data?.profile?.full_name || 'Managing Director'
+  const contactEmail = data?.funeralHome?.contact_email || 'info@yourfuneralhome.com'
 
   return (
     <div className="card-premium p-6 sm:p-10 relative">
@@ -115,6 +116,14 @@ export default function OnboardingStep4Page() {
               {staffCount > 0 ? `${staffCount} invited` : '1 (Director)'}
             </span>
           </div>
+        </div>
+
+        {/* Family Communications Reply-To Summary */}
+        <div className="p-3.5 bg-white border border-[#E5E2DC] rounded flex items-center gap-2.5 text-xs text-[#2C221E]">
+          <span className="text-[#A8935D] text-sm">✉</span>
+          <span>
+            Family communications sent from: <strong className="font-semibold text-[#2C221E]">{contactEmail}</strong>
+          </span>
         </div>
 
         {/* Action Button: Go to Dashboard */}

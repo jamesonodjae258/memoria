@@ -13,7 +13,7 @@
 import { generateObituary } from '../lib/openai/obituary'
 import { generatePaperworkSummary } from '../lib/openai/paperwork'
 import { generateCompliancePDF } from '../lib/pdf/generate-document'
-import { intakeConfirmedTemplate, sendEmail } from '../lib/resend/send-email'
+import { sendIntakeConfirmed } from '../lib/resend/templates/intake-confirmed'
 import type { CaseRecord, Document } from '../types'
 
 async function runE2ETest() {
@@ -151,18 +151,19 @@ async function runE2ETest() {
   // STEP 5: Send Family Intake Email & Log
   try {
     console.log('[STEP 5] Rendering & sending family intake confirmation email...')
-    const emailData = intakeConfirmedTemplate(mockCase.deceased_name, 'Grace & Peaceful Memorial Home')
-    const emailResult = await sendEmail({
+    const emailResult = await sendIntakeConfirmed({
       to: mockCase.family_contact_email!,
-      subject: emailData.subject,
-      html: emailData.html,
-      text: emailData.text,
+      familyContactName: mockCase.family_contact_name,
+      deceasedName: mockCase.deceased_name,
+      funeralHomeName: 'Grace & Peaceful Memorial Home',
+      funeralHomeReplyTo: 'info@graceandpeaceful.com',
+      funeralHomePhone: '(555) 234-5678',
     })
 
     results.push({
       step: '5. Send Family Intake Email',
       status: 'PASSED',
-      details: `Email sent to ${mockCase.family_contact_email}. Resend dispatch ID: ${emailResult.id}. Logged to communication_logs with status='sent'.`,
+      details: `Email sent to ${mockCase.family_contact_email}. Resend dispatch ID: ${emailResult.messageId}. Logged to communication_logs with status='sent'.`,
     })
     console.log('  ✓ Step 5 Passed.\n')
   } catch (err: unknown) {

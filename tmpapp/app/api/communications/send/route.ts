@@ -1,10 +1,7 @@
 import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase/server'
-import {
-  intakeConfirmedTemplate,
-  obituaryReadyTemplate,
-  serviceConfirmedTemplate,
-  sendEmail,
-} from '@/lib/resend/send-email'
+import { sendIntakeConfirmed } from '@/lib/resend/templates/intake-confirmed'
+import { sendObituaryReady } from '@/lib/resend/templates/obituary-ready'
+import { sendServiceConfirmed } from '@/lib/resend/templates/service-confirmed'
 import {
   intakeConfirmedSMS,
   obituaryReadySMS,
@@ -46,7 +43,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Fetch case and funeral home info
+    // Fetch case and joined funeral home info
     const serviceClient = createServiceRoleClient()
     const { data: caseData, error: caseError } = await serviceClient
       .from('cases')
@@ -58,9 +55,36 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Case not found.' }, { status: 404 })
     }
 
-    const c = caseData as CaseRecord & { funeral_homes: FuneralHome }
-    const funeralHomeName = c.funeral_homes?.name || 'Your Funeral Home'
+    const c = caseData as CaseRecord & { funeral_homes: FuneralHome | null }
+    const funeralHome = c.funeral_homes
+    const funeralHomeName = funeralHome?.name || 'Your Funeral Home'
+    const contactEmail = funeralHome?.contact_email?.trim() || null
+    const funeralHomePhone = funeralHome?.phone || undefined
     const caseName = c.deceased_name
+
+    // Check that funeral_home.contact_email is configured before sending email
+    if (!preview && (channel === 'email' || channel === 'both')) {
+      if (!contactEmail) {
+        await serviceClient.from('communication_logs').insert({
+          case_id,
+          channel: 'email',
+          recipient: c.family_contact_email || 'Not provided',
+          subject: `Communication for ${caseName}`,
+          message_content: `Attempted template: ${template_name}`,
+          status: 'failed',
+          error_message: 'contact_email not configured for this funeral home',
+        })
+
+        return NextResponse.json(
+          {
+            error: 'MISSING_CONTACT_EMAIL',
+            message:
+              'This funeral home has not set a contact email address. Ask them to add it in Settings before sending family communications.',
+          },
+          { status: 422 }
+        )
+      }
+    }
 
     // Format service date for templates
     const formattedServiceDate = c.service_date
@@ -74,20 +98,28 @@ export async function POST(request: NextRequest) {
         })
       : 'Date to be confirmed'
     const serviceLocation = c.service_location || 'Location to be confirmed'
+    const serviceType = c.service_type || 'Memorial Service'
 
-    // Render Email content
+    // Render preview content
     let emailRender = { subject: '', text: '', html: '' }
     if (template_name === 'intake_confirmed') {
-      emailRender = intakeConfirmedTemplate(caseName, funeralHomeName)
+      emailRender = {
+        subject: `We have received your information — ${funeralHomeName}`,
+        text: `Dear ${c.family_contact_name},\n\nThank you for trusting ${funeralHomeName} during this time. We have received all the information needed to begin arrangements for ${caseName}, and our team is already at work.\n\nWe will be in touch shortly with the next steps.\n\nWith care,\n${funeralHomeName}`,
+        html: `Preview for intake confirmed`,
+      }
     } else if (template_name === 'obituary_ready') {
-      emailRender = obituaryReadyTemplate(caseName, funeralHomeName)
+      emailRender = {
+        subject: `${caseName}'s obituary draft is ready for your review`,
+        text: `Dear ${c.family_contact_name},\n\nWe have prepared a draft obituary for ${caseName} and would love for you to take a look when you are ready. There is no rush.\n\nWith care,\n${funeralHomeName}`,
+        html: `Preview for obituary ready`,
+      }
     } else if (template_name === 'service_confirmed') {
-      emailRender = serviceConfirmedTemplate(
-        caseName,
-        formattedServiceDate,
-        serviceLocation,
-        funeralHomeName
-      )
+      emailRender = {
+        subject: `Service details confirmed — ${caseName}`,
+        text: `Dear ${c.family_contact_name},\n\nThe arrangements for ${caseName} have been confirmed:\nService Type: ${serviceType}\nDate & Time: ${formattedServiceDate}\nLocation: ${serviceLocation}\n\nWith care,\n${funeralHomeName}`,
+        html: `Preview for service confirmed`,
+      }
     }
 
     // Render SMS content
@@ -114,10 +146,12 @@ export async function POST(request: NextRequest) {
         recipient_email: c.family_contact_email,
         recipient_phone: c.family_contact_phone,
         sms_opt_in: c.sms_opt_in,
+        contact_email: contactEmail,
+        has_contact_email: Boolean(contactEmail),
       })
     }
 
-    // SEND MODE: Perform send operations & log to communication_logs in parallel
+    // SEND MODE: Perform send operations & log every outcome to communication_logs
     const sendTasks: Promise<{ channel: string; success: boolean; error?: string }>[] = []
 
     // 1. Email Dispatch Task
@@ -137,13 +171,73 @@ export async function POST(request: NextRequest) {
             })
             return { channel: 'email', success: false, error: errorMsg }
           }
-          try {
-            await sendEmail({
-              to: c.family_contact_email,
+
+          if (!contactEmail) {
+            const errorMsg = 'contact_email not configured for this funeral home'
+            await serviceClient.from('communication_logs').insert({
+              case_id,
+              channel: 'email',
+              recipient: c.family_contact_email,
               subject: emailRender.subject,
-              html: emailRender.html,
-              text: emailRender.text,
+              message_content: emailRender.text,
+              status: 'failed',
+              error_message: errorMsg,
             })
+            return { channel: 'email', success: false, error: errorMsg }
+          }
+
+          try {
+            let result: { success: boolean; messageId?: string; error?: string } = {
+              success: false,
+              error: 'Unknown template',
+            }
+
+            if (template_name === 'intake_confirmed') {
+              result = await sendIntakeConfirmed({
+                to: c.family_contact_email,
+                familyContactName: c.family_contact_name,
+                deceasedName: c.deceased_name,
+                funeralHomeName,
+                funeralHomeReplyTo: contactEmail,
+                funeralHomePhone,
+              })
+            } else if (template_name === 'obituary_ready') {
+              const origin = request.nextUrl.origin || 'http://localhost:3000'
+              result = await sendObituaryReady({
+                to: c.family_contact_email,
+                familyContactName: c.family_contact_name,
+                deceasedName: c.deceased_name,
+                funeralHomeName,
+                funeralHomeReplyTo: contactEmail,
+                reviewUrl: `${origin}/dashboard/cases/${case_id}/obituary`,
+              })
+            } else if (template_name === 'service_confirmed') {
+              result = await sendServiceConfirmed({
+                to: c.family_contact_email,
+                familyContactName: c.family_contact_name,
+                deceasedName: c.deceased_name,
+                funeralHomeName,
+                funeralHomeReplyTo: contactEmail,
+                funeralHomePhone,
+                serviceDate: formattedServiceDate,
+                serviceLocation,
+                serviceType,
+              })
+            }
+
+            if (!result.success) {
+              const errMsg = result.error || 'Resend error'
+              await serviceClient.from('communication_logs').insert({
+                case_id,
+                channel: 'email',
+                recipient: c.family_contact_email,
+                subject: emailRender.subject,
+                message_content: emailRender.text,
+                status: 'failed',
+                error_message: errMsg,
+              })
+              return { channel: 'email', success: false, error: errMsg }
+            }
 
             await serviceClient.from('communication_logs').insert({
               case_id,

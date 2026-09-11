@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { useToast } from '@/components/ui/Toast'
 import type { CommunicationLog, CaseRecord } from '@/types'
 import type { CommunicationTemplate } from '@/app/api/communications/send/route'
@@ -8,11 +9,13 @@ import type { CommunicationTemplate } from '@/app/api/communications/send/route'
 interface FamilyCommunicationSectionProps {
   caseData: CaseRecord
   initialLogs: CommunicationLog[]
+  funeralHomeContactEmail?: string | null
 }
 
 export default function FamilyCommunicationSection({
   caseData,
   initialLogs,
+  funeralHomeContactEmail,
 }: FamilyCommunicationSectionProps) {
   const [logs, setLogs] = useState<CommunicationLog[]>(initialLogs)
   const [template, setTemplate] = useState<CommunicationTemplate>('intake_confirmed')
@@ -225,32 +228,86 @@ export default function FamilyCommunicationSection({
             )}
 
             {/* Actions */}
-            <div className="flex items-center justify-end gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setPreviewData(null)}
-                disabled={isSending}
-                className="btn-secondary !w-auto text-xs px-3.5 py-1.5 h-8 font-semibold"
+            {!funeralHomeContactEmail ? (
+              <div
+                style={{
+                  background: '#FBF3DB',
+                  borderLeft: '3px solid #C89000',
+                  borderRadius: '4px',
+                  padding: '12px 16px',
+                  fontSize: '13.5px',
+                  color: '#956400',
+                }}
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full"
               >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmSend}
-                disabled={isSending}
-                className="btn-primary !w-auto text-xs px-4 py-1.5 h-8 font-semibold"
-              >
-                {isSending ? 'Sending…' : 'Transmit Update'}
-              </button>
-            </div>
+                <span>
+                  ⚠ Add a contact email before sending family communications. Families will reply to this address.
+                </span>
+                <Link
+                  href="/dashboard/settings"
+                  className="font-semibold underline hover:opacity-80 whitespace-nowrap"
+                >
+                  Go to Settings &rarr;
+                </Link>
+              </div>
+            ) : (
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+                <span style={{ fontSize: '12px', color: 'var(--text-muted, #8C7E6E)' }}>
+                  Families will reply to: <strong className="font-semibold text-[#2C221E]">{funeralHomeContactEmail}</strong>
+                </span>
+                <div className="flex items-center gap-3 self-end sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={() => setPreviewData(null)}
+                    disabled={isSending}
+                    className="btn-secondary !w-auto text-xs px-3.5 py-1.5 h-8 font-semibold"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleConfirmSend}
+                    disabled={isSending}
+                    className="btn-primary !w-auto text-xs px-4 py-1.5 h-8 font-semibold"
+                  >
+                    {isSending ? 'Sending…' : 'Transmit Update'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : !funeralHomeContactEmail ? (
+          <div
+            style={{
+              background: '#FBF3DB',
+              borderLeft: '3px solid #C89000',
+              borderRadius: '4px',
+              padding: '12px 16px',
+              fontSize: '13.5px',
+              color: '#956400',
+            }}
+            className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full"
+          >
+            <span>
+              ⚠ Add a contact email before sending family communications. Families will reply to this address.
+            </span>
+            <Link
+              href="/dashboard/settings"
+              className="font-semibold underline hover:opacity-80 whitespace-nowrap"
+            >
+              Go to Settings &rarr;
+            </Link>
           </div>
         ) : (
-          <div className="flex justify-end">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <span style={{ fontSize: '12px', color: 'var(--text-muted, #8C7E6E)' }}>
+              Families will reply to: <strong className="font-semibold text-[#2C221E]">{funeralHomeContactEmail}</strong>
+            </span>
             <button
               type="button"
               onClick={handlePreview}
               disabled={isPreviewing}
-              className="btn-secondary !w-auto text-xs px-4 py-2 font-semibold"
+              className="btn-secondary !w-auto text-xs px-4 py-2 font-semibold self-end sm:self-auto"
             >
               {isPreviewing ? 'Generating Preview…' : 'Preview Dispatch'}
             </button>

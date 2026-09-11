@@ -34,12 +34,13 @@ export default async function CaseDetailPage({
 
   let c: CaseRecord | null = null
   let commsLogs: CommunicationLog[] = []
+  let funeralHomeContactEmail: string | null = null
 
   if (user) {
     const [caseRes, commsRes] = await Promise.all([
       supabase
         .from('cases')
-        .select('*')
+        .select('*, funeral_homes(*)')
         .eq('id', params.id)
         .maybeSingle(),
       supabase
@@ -51,6 +52,7 @@ export default async function CaseDetailPage({
 
     if (caseRes.data) {
       c = caseRes.data as CaseRecord
+      funeralHomeContactEmail = (caseRes.data as any)?.funeral_homes?.contact_email ?? null
     }
     if (commsRes.data) {
       commsLogs = commsRes.data as CommunicationLog[]
@@ -286,7 +288,11 @@ export default async function CaseDetailPage({
         </div>
 
         {/* Family Communication Section */}
-        <FamilyCommunicationSection caseData={c} initialLogs={commsLogs} />
+        <FamilyCommunicationSection
+          caseData={c}
+          initialLogs={commsLogs}
+          funeralHomeContactEmail={funeralHomeContactEmail}
+        />
       </main>
     </div>
   )

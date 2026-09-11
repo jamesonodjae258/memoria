@@ -12,6 +12,8 @@ export interface FuneralHome {
   state: string
   email: string | null
   phone: string | null
+  contact_email?: string | null
+  contact_email_verified?: boolean
   street_address?: string | null
   city?: string | null
   zip?: string | null

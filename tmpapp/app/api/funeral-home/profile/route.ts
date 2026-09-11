@@ -65,7 +65,7 @@ export async function GET() {
 export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json()
-    const { name, phone, address, city, state, zip } = body
+    const { name, phone, contact_email, address, city, state, zip } = body
 
     const supabase = createServerSupabaseClient()
     const isDemoSession = cookies().get('gp_demo_session')?.value === 'true'
@@ -108,6 +108,7 @@ export async function PATCH(request: NextRequest) {
     const updatePayload: Record<string, any> = {}
     if (name?.trim()) updatePayload.name = name.trim()
     if (phone !== undefined) updatePayload.phone = phone.trim()
+    if (contact_email !== undefined) updatePayload.contact_email = contact_email ? contact_email.trim().toLowerCase() : null
     if (address !== undefined) updatePayload.address = address.trim()
     if (city !== undefined) updatePayload.city = city.trim()
     if (state !== undefined) updatePayload.state = state.trim().toUpperCase()

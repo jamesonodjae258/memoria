@@ -30,6 +30,7 @@ export default async function DashboardPage() {
   // 1 & 2. Fetch staff profile, funeral home, and cases concurrently (RLS scoped)
   let funeralHomeName = 'Grace & Peaceful Memorial Home'
   let staffName = 'Sarah Jenkins (Director)'
+  let hasContactEmail = true
   let cases: CaseRecord[] = []
   let documentsMap: Record<string, Document[]> = {}
 
@@ -60,6 +61,7 @@ export default async function DashboardPage() {
 
       funeralHomeName = profile.funeral_homes?.name ?? funeralHomeName
       staffName = profile.full_name ?? user.email ?? staffName
+      hasContactEmail = Boolean(profile.funeral_homes?.contact_email)
       cases = (casesRes.data || []) as CaseRecord[]
     } else {
       const { data: casesData } = await supabase
@@ -98,6 +100,7 @@ export default async function DashboardPage() {
       documentsMap={documentsMap}
       funeralHomeName={funeralHomeName}
       staffName={staffName}
+      hasContactEmail={hasContactEmail}
     />
   )
 }

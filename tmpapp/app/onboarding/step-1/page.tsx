@@ -10,6 +10,7 @@ export default function OnboardingStep1Page() {
   const [fullName, setFullName] = useState('')
   const [funeralHomeName, setFuneralHomeName] = useState('')
   const [phone, setPhone] = useState('')
+  const [contactEmail, setContactEmail] = useState('')
   const [streetAddress, setStreetAddress] = useState('')
   const [city, setCity] = useState('')
   const [stateCode, setStateCode] = useState('TX')
@@ -34,6 +35,9 @@ export default function OnboardingStep1Page() {
           }
           if (data.funeralHome?.phone) {
             setPhone(data.funeralHome.phone)
+          }
+          if (data.funeralHome?.contact_email) {
+            setContactEmail(data.funeralHome.contact_email)
           }
           if (data.funeralHome?.street_address) {
             setStreetAddress(data.funeralHome.street_address)
@@ -71,6 +75,12 @@ export default function OnboardingStep1Page() {
       return
     }
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!contactEmail.trim() || !emailRegex.test(contactEmail.trim())) {
+      setError('Please provide a valid public contact email address (e.g. info@yourfuneralhome.com).')
+      return
+    }
+
     setIsLoading(true)
 
     try {
@@ -81,6 +91,7 @@ export default function OnboardingStep1Page() {
           funeral_home_name: funeralHomeName,
           full_name: fullName,
           phone,
+          contact_email: contactEmail,
           street_address: streetAddress,
           city,
           state: stateCode,
@@ -180,6 +191,26 @@ export default function OnboardingStep1Page() {
                 className="w-full bg-white border border-[#E5E2DC] rounded p-2.5 text-xs text-[#2C221E] focus:border-[#A8935D] focus:outline-none transition-colors"
               />
             </div>
+          </div>
+
+          <div>
+            <label htmlFor="fh-contact-email" className="field-label">
+              Email address families will reply to *
+            </label>
+            <input
+              id="fh-contact-email"
+              name="contact_email"
+              type="email"
+              value={contactEmail}
+              onChange={(e) => setContactEmail(e.target.value)}
+              placeholder="info@yourfuneralhome.com"
+              required
+              disabled={isLoading || isPrefetching}
+              className="w-full bg-white border border-[#E5E2DC] rounded p-2.5 text-xs text-[#2C221E] focus:border-[#A8935D] focus:outline-none transition-colors"
+            />
+            <p className="text-[11px] text-[#8C7E6E] mt-1">
+              This is the email that appears on all messages sent to families. Use your funeral home&apos;s main public email address e.g. info@yourfuneralhome.com
+            </p>
           </div>
 
           <div>
