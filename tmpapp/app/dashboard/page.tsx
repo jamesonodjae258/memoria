@@ -59,6 +59,18 @@ export default async function DashboardPage() {
         redirect(`/onboarding/step-${currentStep}`)
       }
 
+      const fh = profile.funeral_homes as any
+      const isPaying = fh?.subscription_status === 'active'
+      const isCancelled = fh?.subscription_status === 'cancelled'
+      const isExpiredTrial =
+        fh?.subscription_status === 'trial' &&
+        fh?.trial_ends_at &&
+        new Date(fh.trial_ends_at).getTime() < Date.now()
+
+      if (!isPaying && (isCancelled || isExpiredTrial)) {
+        redirect('/dashboard/billing?expired=true')
+      }
+
       funeralHomeName = profile.funeral_homes?.name ?? funeralHomeName
       staffName = profile.full_name ?? user.email ?? staffName
       hasContactEmail = Boolean(profile.funeral_homes?.contact_email)
@@ -89,6 +101,26 @@ export default async function DashboardPage() {
     }
   }
 
+  // Calculate days left in trial
+  let trialDaysLeft = 30
+  let subscriptionStatus = 'trial'
+
+  if (user && !isDemoSession) {
+    const { data: staffData } = await supabase
+      .from('staff_profiles')
+      .select('funeral_homes(subscription_status, trial_ends_at)')
+      .eq('user_id', user.id)
+      .maybeSingle()
+    const fh = staffData?.funeral_homes as any
+    if (fh) {
+      subscriptionStatus = fh.subscription_status || 'trial'
+      if (fh.trial_ends_at) {
+        const msRemaining = new Date(fh.trial_ends_at).getTime() - Date.now()
+        trialDaysLeft = Math.max(0, Math.ceil(msRemaining / (1000 * 60 * 60 * 24)))
+      }
+    }
+  }
+
   // Fallback demo cases ONLY for unauthenticated demo bypass mode or unconfigured preview instances
   if (cases.length === 0 && (isDemoSession || !isConfigured)) {
     cases = getDemoCases()
@@ -101,6 +133,8 @@ export default async function DashboardPage() {
       funeralHomeName={funeralHomeName}
       staffName={staffName}
       hasContactEmail={hasContactEmail}
+      trialDaysLeft={trialDaysLeft}
+      subscriptionStatus={subscriptionStatus}
     />
   )
 }

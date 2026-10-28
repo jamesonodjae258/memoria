@@ -25,7 +25,7 @@ const instrumentSerif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  title: "Memoria — Funeral Operations Suite",
+  title: "Memoria - Funeral Operations Suite",
   description:
     "AI-assisted case intake, obituary drafting, family communications, and state compliance for modern funeral homes.",
 };

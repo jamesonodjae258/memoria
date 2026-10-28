@@ -1,7 +1,7 @@
 import Link from 'next/link'
 
 export const metadata = {
-  title: 'Onboarding — Memoria Funeral Suite',
+  title: 'Onboarding - Memoria Funeral Suite',
   description: 'Setup and configure your funeral home on Memoria.',
 }
 

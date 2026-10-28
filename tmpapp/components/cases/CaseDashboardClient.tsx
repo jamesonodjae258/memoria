@@ -6,6 +6,7 @@ import CaseCard from './CaseCard'
 import type { CaseRecord, Document } from '@/types'
 
 import DashboardHeader from '@/components/dashboard/DashboardHeader'
+import { CONTACT_EMAIL } from '@/lib/constants/legal'
 
 export type FilterTab = 'all' | 'active' | 'pending_review' | 'completed'
 
@@ -15,6 +16,8 @@ interface CaseDashboardClientProps {
   funeralHomeName: string
   staffName: string
   hasContactEmail?: boolean
+  trialDaysLeft?: number
+  subscriptionStatus?: string
 }
 
 export default function CaseDashboardClient({
@@ -23,6 +26,8 @@ export default function CaseDashboardClient({
   funeralHomeName,
   staffName,
   hasContactEmail = true,
+  trialDaysLeft,
+  subscriptionStatus = 'trial',
 }: CaseDashboardClientProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const deferredSearch = useDeferredValue(searchQuery)
@@ -102,6 +107,29 @@ export default function CaseDashboardClient({
 
       {/* Main Workspace Area */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+        {/* Trial Days Remaining Banner */}
+        {subscriptionStatus === 'trial' && trialDaysLeft !== undefined && (
+          <div className="mb-6 bg-[#FAF9F7] border border-[#E5E2DC] rounded p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+            <div className="flex items-center gap-2.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#A8935D]" />
+              <div className="text-xs">
+                <strong className="text-[#2C221E] font-semibold">
+                  Founding partner trial: {trialDaysLeft} {trialDaysLeft === 1 ? 'day' : 'days'} remaining.
+                </strong>
+                <span className="text-[#6B5E50] ml-2 hidden sm:inline">
+                  Full back office access active.
+                </span>
+              </div>
+            </div>
+            <Link
+              href="/dashboard/billing"
+              className="text-xs font-semibold text-[#A8935D] hover:text-[#2C221E] underline whitespace-nowrap self-start sm:self-auto"
+            >
+              View billing details
+            </Link>
+          </div>
+        )}
+
         {/* Missing Public Contact Email Banner */}
         {!hasContactEmail && (
           <div className="mb-6 bg-[#FBF3DB] border-l-4 border-[#C89000] rounded-r p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
@@ -267,12 +295,12 @@ export default function CaseDashboardClient({
               <h3 className="text-xl font-display font-semibold text-[#2C221E] mb-2">
                 {searchQuery
                   ? 'No matching cases found'
-                  : `Welcome to Memoria — Your Case Ledger is Ready`}
+                  : `Welcome to Memoria - Your Case Ledger is Ready`}
               </h3>
               <p className="text-xs sm:text-sm text-[#6B5E50] mb-8 leading-relaxed">
                 {searchQuery
                   ? `No cases matched "${searchQuery}". Try adjusting or clearing your search filter.`
-                  : 'Start by recording decedent details and family contacts from a first-call intake to generate AI obituaries and pre-fill compliance paperwork.'}
+                  : 'Start by recording decedent details and family contacts from a first-call intake to generate AI obituaries and prepare filing summaries.'}
               </p>
 
               {searchQuery ? (
@@ -313,7 +341,26 @@ export default function CaseDashboardClient({
           </div>
         )}
 
-
+        {/* Dashboard Footer */}
+        <footer className="mt-12 pt-6 border-t border-[#E5E2DC] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#8C7E6E]">
+          <div>
+            <span>Memoria - Back-office agent for independent funeral homes</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <Link href="/privacy" className="hover:text-[#2C221E] transition-colors">
+              Privacy Policy
+            </Link>
+            <Link href="/terms" className="hover:text-[#2C221E] transition-colors">
+              Terms of Service
+            </Link>
+            <a
+              href={`mailto:${CONTACT_EMAIL}`}
+              className="hover:text-[#2C221E] transition-colors font-medium text-[#2C221E]"
+            >
+              Contact us
+            </a>
+          </div>
+        </footer>
       </main>
     </div>
   )

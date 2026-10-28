@@ -56,6 +56,34 @@ export async function PATCH(request: NextRequest) {
 
     const serviceClient = createServiceRoleClient()
 
+    // Verify document exists and belongs to the user's funeral home
+    const { data: existingDoc, error: docError } = await serviceClient
+      .from('documents')
+      .select('id, case_id, cases(funeral_home_id)')
+      .eq('id', document_id)
+      .maybeSingle()
+
+    if (docError || !existingDoc) {
+      return NextResponse.json(
+        { error: 'Document was not found.' },
+        { status: 404 }
+      )
+    }
+
+    const { data: staffProfile } = await serviceClient
+      .from('staff_profiles')
+      .select('funeral_home_id')
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    const caseHomeId = (existingDoc.cases as any)?.funeral_home_id
+    if (!staffProfile || staffProfile.funeral_home_id !== caseHomeId) {
+      return NextResponse.json(
+        { error: 'You do not have permission to update documents for this case.' },
+        { status: 403 }
+      )
+    }
+
     const updatePayload: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
     }

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/components/ui/Toast'
 import type { CaseInsert } from '@/types'
+import { SMS_ENABLED } from '@/lib/features'
 
 const STEPS = [
   { key: 'deceased', label: 'About Deceased', number: '01' },
@@ -296,7 +297,7 @@ export default function IntakeForm() {
                 rows={4}
                 value={form.additional_notes ?? ''}
                 onChange={(e) => update('additional_notes', e.target.value)}
-                placeholder="Notes shared by the family — hobbies, favorite memories, values, surviving family. These details power the AI obituary writer."
+                placeholder="Notes shared by the family - hobbies, favorite memories, values, surviving family. These details power the AI obituary writer."
                 className="w-full bg-[#FAF9F7] border border-[#E5E2DC] rounded p-2.5 text-xs text-[#2C221E] focus:bg-white focus:border-[#A8935D] focus:outline-none transition-colors resize-none leading-relaxed"
               />
             </div>
@@ -376,7 +377,7 @@ export default function IntakeForm() {
               </div>
             </div>
 
-            {form.family_contact_phone && (
+            {SMS_ENABLED && form.family_contact_phone && (
               <div className="p-3 bg-[#FAF9F7] border border-[#E5E2DC] rounded">
                 <label className="flex items-start gap-3 cursor-pointer">
                   <input

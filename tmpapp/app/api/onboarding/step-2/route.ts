@@ -6,9 +6,14 @@ import { US_STATES } from '@/lib/constants/states'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { primary_state, additional_states = [] } = body
+    const {
+      primary_state,
+      additional_states = [],
+      is_not_listed,
+      requested_state_name,
+    } = body
 
-    if (!primary_state) {
+    if (!primary_state && !is_not_listed) {
       return NextResponse.json(
         { error: 'Primary operating state is required.' },
         { status: 400 }
@@ -44,6 +49,56 @@ export async function POST(request: NextRequest) {
       .maybeSingle()
 
     const homeId = profile?.funeral_home_id || 'demo-home-id'
+
+    // If state is not listed, save to state_requests and allow user to continue
+    if (is_not_listed || primary_state === 'NOT_LISTED') {
+      const stateName = requested_state_name?.trim()
+      if (!stateName) {
+        return NextResponse.json(
+          { error: 'Please enter the name of your state.' },
+          { status: 400 }
+        )
+      }
+
+      let contactEmail = user?.email || 'director@example.com'
+      if (homeId && homeId !== 'demo-home-id') {
+        const { data: home } = await adminClient
+          .from('funeral_homes')
+          .select('contact_email, email')
+          .eq('id', homeId)
+          .maybeSingle()
+        if (home?.contact_email) {
+          contactEmail = home.contact_email
+        } else if (home?.email) {
+          contactEmail = home.email
+        }
+      }
+
+      if (user?.id) {
+        await adminClient.from('state_requests').insert({
+          user_id: user.id,
+          funeral_home_id: homeId !== 'demo-home-id' ? homeId : null,
+          state_name: stateName,
+          contact_email: contactEmail,
+          status: 'new',
+        })
+      }
+
+      if (homeId && homeId !== 'demo-home-id') {
+        await adminClient
+          .from('funeral_homes')
+          .update({
+            state: stateName,
+            onboarding_step: 3,
+          })
+          .eq('id', homeId)
+      }
+
+      return NextResponse.json({
+        success: true,
+        nextStep: 3,
+      })
+    }
 
     // All chosen state abbreviations
     const uniqueAbbrs = Array.from(

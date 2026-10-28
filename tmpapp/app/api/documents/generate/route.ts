@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
 
     if (authError || !user) {
       return NextResponse.json(
-        { error: 'You must be signed in to generate paperwork.' },
+        { error: 'You must be signed in to generate a filing summary.' },
         { status: 401 }
       )
     }
@@ -36,12 +36,26 @@ export async function POST(request: NextRequest) {
       .from('cases')
       .select('*')
       .eq('id', case_id)
-      .single()
+      .maybeSingle()
 
     if (caseError || !caseData) {
       return NextResponse.json(
-        { error: 'Case not found.' },
+        { error: 'Case was not found.' },
         { status: 404 }
+      )
+    }
+
+    // Verify staff belongs to the funeral home owning this case
+    const { data: staffProfile } = await serviceClient
+      .from('staff_profiles')
+      .select('funeral_home_id')
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    if (!staffProfile || staffProfile.funeral_home_id !== caseData.funeral_home_id) {
+      return NextResponse.json(
+        { error: 'You do not have permission to access this case.' },
+        { status: 403 }
       )
     }
 
@@ -57,7 +71,7 @@ export async function POST(request: NextRequest) {
       .insert({
         case_id,
         type: 'compliance_form',
-        title: `Compliance Form - ${caseData.deceased_name}`,
+        title: `Filing Summary - ${caseData.deceased_name}`,
         draft_content: summaryJsonString,
         pdf_url: pdfResult.pdfUrl,
         status: 'draft',
@@ -91,7 +105,7 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     )
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Paperwork generation failed.'
+    const message = err instanceof Error ? err.message : 'Filing summary generation failed.'
     return NextResponse.json(
       { error: message },
       { status: 500 }

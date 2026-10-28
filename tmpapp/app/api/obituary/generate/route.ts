@@ -53,15 +53,40 @@ export async function POST(request: NextRequest) {
         .from('cases')
         .select('*')
         .eq('id', case_id)
-        .single()
+        .maybeSingle()
 
-      if (!caseError && data) {
-        caseData = data as CaseRecord
+      if (caseError || !data) {
+        return NextResponse.json(
+          { error: 'Case was not found.' },
+          { status: 404 }
+        )
       }
+
+      const { data: staffProfile } = await serviceClient
+        .from('staff_profiles')
+        .select('funeral_home_id')
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+      if (!staffProfile || staffProfile.funeral_home_id !== data.funeral_home_id) {
+        return NextResponse.json(
+          { error: 'You do not have permission to access this case.' },
+          { status: 403 }
+        )
+      }
+
+      caseData = data as CaseRecord
+    }
+
+    if (!caseData && isDemoSession) {
+      caseData = getDemoCaseById(case_id)
     }
 
     if (!caseData) {
-      caseData = getDemoCaseById(case_id)
+      return NextResponse.json(
+        { error: 'Case was not found.' },
+        { status: 404 }
+      )
     }
 
     // 3. Call AI engine to generate obituary

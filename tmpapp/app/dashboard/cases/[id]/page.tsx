@@ -95,7 +95,7 @@ export default async function CaseDetailPage({
               href={`/dashboard/cases/${params.id}/documents`}
               className="btn-secondary !w-auto text-xs px-2.5 sm:px-3.5 py-1.5 h-8 font-semibold whitespace-nowrap hidden sm:inline-flex"
             >
-              Compliance PDFs
+              Filing Summaries
             </Link>
           </div>
         </div>
@@ -138,7 +138,7 @@ export default async function CaseDetailPage({
                 href={`/dashboard/cases/${params.id}/documents`}
                 className="btn-secondary !w-auto text-xs font-semibold uppercase tracking-wider px-4 py-2.5 h-9"
               >
-                Generate PDFs
+                Filing Summaries
               </Link>
             </div>
           </div>

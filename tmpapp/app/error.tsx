@@ -11,7 +11,7 @@ export default function DashboardError({
 }) {
   useEffect(() => {
     // Log structured error internally
-    console.error('Dashboard Error Boundary caught error:', error)
+    console.error('Dashboard Error Boundary caught error:', error?.message || 'Unknown error')
   }, [error])
 
   return (

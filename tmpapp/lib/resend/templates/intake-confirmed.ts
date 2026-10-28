@@ -49,14 +49,14 @@ export async function sendIntakeConfirmed(params: IntakeConfirmedParams) {
       </p>
       <hr style="border: none; border-top: 1px solid #E6E1D8; margin: 32px 0;" />
       <p style="font-size: 12px; color: #B0A090; line-height: 1.6;">
-        This message was sent on behalf of ${funeralHomeName}. To reply, simply respond to this email — your message will go directly to the funeral home team.
+        This message was sent on behalf of ${funeralHomeName}. To reply, simply respond to this email - your message will go directly to the funeral home team.
       </p>
     </div>
   `
 
   return sendEmail({
     to,
-    subject: `We have received your information — ${funeralHomeName}`,
+    subject: `We have received your information - ${funeralHomeName}`,
     html,
     funeralHomeName,
     funeralHomeReplyTo,

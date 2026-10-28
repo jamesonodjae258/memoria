@@ -72,7 +72,7 @@ export async function sendServiceConfirmed(params: ServiceConfirmedParams) {
 
   return sendEmail({
     to,
-    subject: `Service details confirmed — ${deceasedName}`,
+    subject: `Service details confirmed - ${deceasedName}`,
     html,
     funeralHomeName,
     funeralHomeReplyTo,

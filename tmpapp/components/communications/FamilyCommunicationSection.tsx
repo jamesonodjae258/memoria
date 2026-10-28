@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useToast } from '@/components/ui/Toast'
 import type { CommunicationLog, CaseRecord } from '@/types'
 import type { CommunicationTemplate } from '@/app/api/communications/send/route'
+import { SMS_ENABLED } from '@/lib/features'
 
 interface FamilyCommunicationSectionProps {
   caseData: CaseRecord
@@ -81,6 +82,7 @@ export default function FamilyCommunicationSection({
           template_name: template,
           channel,
           preview: false,
+          confirmed: true,
         }),
       })
 
@@ -120,11 +122,11 @@ export default function FamilyCommunicationSection({
             Family Communications Dispatch
           </h2>
           <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-[#FAF9F7] text-[#6B5E50] border border-[#E5E2DC]">
-            Multi-Channel Hub
+            {SMS_ENABLED ? 'Multi-Channel Hub' : 'Email Updates'}
           </span>
         </div>
         <p className="text-xs text-[#6B5E50] mb-6">
-          Dispatch authenticated SMS and email updates to the family at key milestones. Messages are always previewed before firing.
+          Dispatch authenticated email updates to the family at key milestones. Messages are always previewed before firing.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
@@ -162,9 +164,9 @@ export default function FamilyCommunicationSection({
               }}
               className="field-input cursor-pointer bg-white border border-[#E5E2DC] rounded p-2 text-xs"
             >
-              <option value="email">Email Only (Resend)</option>
-              <option value="sms">SMS Only (Twilio)</option>
-              <option value="both">Both Email &amp; SMS</option>
+              <option value="email">Email</option>
+              {SMS_ENABLED && <option value="sms">SMS Only (Twilio)</option>}
+              {SMS_ENABLED && <option value="both">Both Email &amp; SMS</option>}
             </select>
           </div>
         </div>
@@ -209,7 +211,7 @@ export default function FamilyCommunicationSection({
             )}
 
             {/* SMS Preview */}
-            {previewData.sms && (
+            {SMS_ENABLED && previewData.sms && (
               <div className="bg-white p-4 rounded border border-[#E5E2DC] space-y-2">
                 <div className="text-xs font-medium text-[#6B5E50] border-b border-[#E5E2DC] pb-2 flex items-center justify-between">
                   <span>
@@ -270,7 +272,7 @@ export default function FamilyCommunicationSection({
                     disabled={isSending}
                     className="btn-primary !w-auto text-xs px-4 py-1.5 h-8 font-semibold"
                   >
-                    {isSending ? 'Sending…' : 'Transmit Update'}
+                    {isSending ? 'Sending...' : 'Confirm Send'}
                   </button>
                 </div>
               </div>

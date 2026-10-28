@@ -95,6 +95,14 @@ export default async function AdminLayout({
               <span className="text-base">🏢</span>
               <span>Funeral Homes &amp; Plans</span>
             </Link>
+
+            <Link
+              href="/admin/state-requests"
+              className="flex items-center gap-3 px-3 py-2.5 rounded text-[#CBD5E1] hover:text-white hover:bg-[#334155] transition-colors"
+            >
+              <span className="text-base">📬</span>
+              <span>State requests</span>
+            </Link>
           </nav>
         </div>
 

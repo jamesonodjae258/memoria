@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import DashboardHeader from '@/components/dashboard/DashboardHeader'
+import { MULTI_STATE_ENABLED } from '@/lib/features'
 
 interface RegisteredState {
   id: string
@@ -150,6 +151,13 @@ export default function SettingsStatesPage() {
   const registeredIds = new Set(registeredStates.map((s) => s.state_id))
   const unselectedStates = allStates.filter((s) => !registeredIds.has(s.id))
 
+  const primaryStateItem = registeredStates.find((s) => s.is_primary)
+  const displayedStates = MULTI_STATE_ENABLED
+    ? registeredStates
+    : primaryStateItem
+    ? [primaryStateItem]
+    : registeredStates.slice(0, 1)
+
   return (
     <div className="min-h-screen bg-[#F8F7F4] text-[#1A1310] font-body flex flex-col selection:bg-[#A8935D] selection:text-white">
       <DashboardHeader
@@ -201,7 +209,7 @@ export default function SettingsStatesPage() {
         )}
 
         {/* Add State Card */}
-        {unselectedStates.length > 0 && (
+        {MULTI_STATE_ENABLED && unselectedStates.length > 0 && (
           <div className="card-premium p-6 relative">
             <div className="brass-inlay absolute top-0 left-0 right-0" />
             <h2 className="font-display text-base font-semibold text-[#2C221E] mb-1">
@@ -229,7 +237,7 @@ export default function SettingsStatesPage() {
                 disabled={isAdding}
                 className="btn-primary !w-auto text-xs font-semibold uppercase tracking-wider px-6 py-2.5 h-10 shrink-0 w-full sm:w-auto"
               >
-                {isAdding ? 'Adding…' : '+ Add State'}
+                {isAdding ? 'Adding...' : '+ Add State'}
               </button>
             </form>
           </div>
@@ -239,24 +247,26 @@ export default function SettingsStatesPage() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="font-display text-lg font-semibold text-[#2C221E]">
-              Configured Jurisdictions ({registeredStates.length})
+              {MULTI_STATE_ENABLED
+                ? `Configured Jurisdictions (${registeredStates.length})`
+                : 'Operating Jurisdiction'}
             </h2>
             <span className="text-xs text-[#8C7E6E]">
-              1 Primary Required
+              {MULTI_STATE_ENABLED ? '1 Primary Required' : 'Primary Operating State'}
             </span>
           </div>
 
           <div className="space-y-3">
             {isLoading ? (
               <div className="p-8 text-center text-xs text-[#8C7E6E]">
-                Loading jurisdictions…
+                Loading jurisdictions...
               </div>
-            ) : registeredStates.length === 0 ? (
+            ) : displayedStates.length === 0 ? (
               <div className="card-premium p-8 text-center text-xs text-[#8C7E6E]">
                 No operating states registered.
               </div>
             ) : (
-              registeredStates.map((st) => (
+              displayedStates.map((st) => (
                 <div
                   key={st.id}
                   className={`card-premium p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all ${
@@ -299,8 +309,7 @@ export default function SettingsStatesPage() {
                       View Forms
                     </Link>
 
-
-                    {!st.is_primary && (
+                    {MULTI_STATE_ENABLED && !st.is_primary && (
                       <>
                         <button
                           type="button"

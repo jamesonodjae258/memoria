@@ -660,11 +660,20 @@
 
 .proof-num {
   font-family: 'Instrument Serif', serif;
-  font-size: 64px; letter-spacing: -0.04em; color: #fff; line-height: 1;
+  font-size: clamp(38px, 4vw, 54px);
+  letter-spacing: -0.03em;
+  color: #fff;
+  line-height: 1.1;
 }
 
 .proof-num span { color: var(--sage); }
-.proof-label { font-size: 14px; color: rgba(255,255,255,0.45); margin-top: 10px; line-height: 1.5; }
+.proof-label {
+  font-size: 14.5px;
+  color: rgba(255,255,255,0.75);
+  margin-top: 12px;
+  line-height: 1.55;
+  font-weight: 400;
+}
 
 .proof-divider {
   width: 32px; height: 1px;
@@ -677,6 +686,20 @@
 }
 
 .pricing { background: var(--white); }
+
+.pricing-single-wrap {
+  max-width: 520px;
+  margin: 56px auto 0;
+}
+
+.pricing-card-single {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 48px 40px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  text-align: left;
+}
 
 .pricing-grid {
   display: grid; grid-template-columns: repeat(3, 1fr);
@@ -705,7 +728,7 @@
 
 .pricing-features {
   list-style: none; display: flex; flex-direction: column;
-  gap: 10px; margin-bottom: 32px; padding-bottom: 32px;
+  gap: 12px; margin-bottom: 32px; padding-bottom: 32px;
   border-bottom: 1px solid var(--border);
 }
 

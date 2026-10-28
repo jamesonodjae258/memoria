@@ -40,11 +40,15 @@ export async function POST(request: NextRequest) {
         name: funeralHomeName,
         state: state || 'TX',
         email: email,
+        subscription_status: 'trial',
+        subscription_plan: 'starter',
+        trial_ends_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       })
       .select()
       .single()
 
     if (homeError) {
+      await adminClient.auth.admin.deleteUser(userId)
       return NextResponse.json({ error: homeError.message }, { status: 500 })
     }
 
@@ -57,6 +61,8 @@ export async function POST(request: NextRequest) {
     })
 
     if (profileError) {
+      await adminClient.from('funeral_homes').delete().eq('id', homeData.id)
+      await adminClient.auth.admin.deleteUser(userId)
       return NextResponse.json({ error: profileError.message }, { status: 500 })
     }
 

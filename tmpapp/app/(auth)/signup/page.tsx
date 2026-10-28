@@ -121,7 +121,7 @@ export default function SignUpPage() {
         {/* Step info header */}
         <div className="border-b border-[#E5E2DC] pb-4 mb-6">
           <h2 className="text-sm font-semibold text-[#2C221E]">Sign Up</h2>
-          <p className="text-xs text-[#8C7E6E]">Step 0 of 4 — Create credentials</p>
+          <p className="text-xs text-[#8C7E6E]">Step 0 of 4 - Create credentials</p>
         </div>
 
         {error && (

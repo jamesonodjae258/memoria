@@ -173,12 +173,12 @@ export async function POST(request: NextRequest) {
 
     // Send email via Resend
     try {
-      const origin = request.nextUrl.origin || 'http://localhost:3000'
+      const origin = process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin || 'http://localhost:3000'
       const signupUrl = `${origin}/signup`
 
       await sendEmail({
         to: email.trim().toLowerCase(),
-        subject: `You've been invited to join ${homeName} on Memoria`,
+        subject: `You have been invited to join ${homeName} on Memoria`,
         html: `
           <div style="font-family: sans-serif; color: #2A1F1B; line-height: 1.6; max-width: 600px; margin: 0 auto; padding: 24px; border-top: 3px solid #A8935D; background: #FAF9F7;">
             <h2 style="font-size: 20px; font-weight: 600; color: #2C221E; margin-bottom: 12px;">Staff Team Invitation</h2>
@@ -196,7 +196,7 @@ export async function POST(request: NextRequest) {
         funeralHomeReplyTo: replyTo,
       })
     } catch (mailErr) {
-      console.warn('Resend mail warning:', mailErr)
+      console.warn('Resend mail warning:', (mailErr as Error)?.message || 'Send failed')
     }
 
     return NextResponse.json({ success: true, invitation: newInvite })

@@ -41,8 +41,22 @@ export async function POST(request: NextRequest) {
       .maybeSingle()
 
     if (caseRow) {
+      if (user) {
+        const { data: staffProfile } = await adminClient
+          .from('staff_profiles')
+          .select('funeral_home_id')
+          .eq('user_id', user.id)
+          .maybeSingle()
+
+        if (!staffProfile || staffProfile.funeral_home_id !== caseRow.funeral_home_id) {
+          return NextResponse.json(
+            { error: 'You do not have permission to access this case.' },
+            { status: 403 }
+          )
+        }
+      }
       caseData = caseRow as CaseRecord
-    } else {
+    } else if (isDemoSession) {
       // Demo fallback case
       caseData = {
         id: case_id,
@@ -66,6 +80,13 @@ export async function POST(request: NextRequest) {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       }
+    }
+
+    if (!caseData) {
+      return NextResponse.json(
+        { error: 'Case was not found.' },
+        { status: 404 }
+      )
     }
 
     // 2. Fetch Compliance Template
@@ -123,7 +144,7 @@ export async function POST(request: NextRequest) {
       case_id: case_id,
     })
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : 'Failed to generate compliance document'
+    const msg = err instanceof Error ? err.message : 'Failed to generate filing summary'
     return NextResponse.json({ error: msg }, { status: 500 })
   }
 }

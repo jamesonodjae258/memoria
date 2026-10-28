@@ -62,7 +62,7 @@ export async function sendSMS({
     return {
       success: true,
       sid: `mock_sms_${Date.now()}`,
-      note: 'Twilio credentials not configured — simulated SMS send.',
+      note: 'Twilio credentials not configured - simulated SMS send.',
     }
   }
 

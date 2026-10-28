@@ -41,7 +41,7 @@ export async function generateCompliancePDF(
       next_of_kin_contact: '',
       service_type: '',
       service_date: '',
-      missing_fields: ['Failed to parse structured paperwork data'],
+      missing_fields: ['Failed to parse structured filing summary data'],
     }
   }
 
@@ -67,7 +67,7 @@ export async function generateCompliancePDF(
   let y = height - 50
 
   // Header
-  const titleText = formTitle ? formTitle.toUpperCase() : 'FUNERAL HOME COMPLIANCE & INTAKE RECORD'
+  const titleText = formTitle ? formTitle.toUpperCase() : 'FUNERAL HOME FILING SUMMARY & INTAKE RECORD'
   page.drawText(titleText.substring(0, 50), {
     x: 50,
     y,
@@ -95,12 +95,20 @@ export async function generateCompliancePDF(
     color: brassColor,
   })
 
+  y -= 16
+  page.drawText('Prepared for staff review. Confirm current requirements with your state office before filing.', {
+    x: 50,
+    y,
+    size: 8,
+    font: fontRegular,
+    color: grayText,
+  })
 
-  y -= 25
+  y -= 16
   page.drawText(`Generated on: ${new Date().toLocaleDateString('en-US', { dateStyle: 'full' })}`, {
     x: 50,
     y,
-    size: 9,
+    size: 8.5,
     font: fontRegular,
     color: grayText,
   })
@@ -119,7 +127,7 @@ export async function generateCompliancePDF(
       borderWidth: 1,
     })
 
-    page.drawText('ATTENTION: MISSING REQUIRED COMPLIANCE FIELDS', {
+    page.drawText('ATTENTION: MISSING REQUIRED FILING SUMMARY FIELDS', {
       x: 60,
       y: y,
       size: 10,
@@ -283,7 +291,7 @@ export async function generateCompliancePDF(
 
   if (uploadError) {
     // If storage bucket is not configured yet, fallback to data URI or public path placeholder
-    console.error('Supabase Storage upload error:', uploadError)
+    console.error('Supabase Storage upload error:', (uploadError as Error)?.message || 'Upload failed')
     publicUrl = `data:application/pdf;base64,${Buffer.from(pdfBytes).toString('base64')}`
   } else {
     const { data: urlData } = supabaseService.storage

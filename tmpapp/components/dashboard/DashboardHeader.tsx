@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { CONTACT_EMAIL } from '@/lib/constants/legal'
 
 interface DashboardHeaderProps {
   funeralHomeName?: string
@@ -20,8 +21,9 @@ export default function DashboardHeader({
 
   const navItems = [
     { label: 'Active Cases Ledger', href: '/dashboard' },
-    { label: 'State Compliance Library', href: '/dashboard/compliance' },
+    { label: 'Compliance', href: '/dashboard/compliance' },
     { label: 'Director Settings & Team', href: '/dashboard/settings' },
+    { label: 'Billing & Plan', href: '/dashboard/billing' },
   ]
 
   return (
@@ -85,6 +87,13 @@ export default function DashboardHeader({
               <span className="font-medium text-[#2C221E]">{staffName}</span>
             </div>
 
+            <a
+              href={`mailto:${CONTACT_EMAIL}`}
+              className="text-xs font-semibold text-[#6B5E50] hover:text-[#2C221E] transition-colors px-2.5 py-1.5 rounded hover:bg-[#E5E2DC]/50 whitespace-nowrap shrink-0 focus-visible:ring-2 focus-visible:ring-[#A8935D]"
+            >
+              Contact us
+            </a>
+
             <form action="/api/auth/signout" method="POST" className="shrink-0">
               <button
                 type="submit"
@@ -144,6 +153,14 @@ export default function DashboardHeader({
                   </Link>
                 )
               })}
+
+              <a
+                href={`mailto:${CONTACT_EMAIL}`}
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-3 py-2 rounded text-xs font-semibold text-[#6B5E50] hover:text-[#2C221E] hover:bg-white/60 block transition-colors"
+              >
+                Contact us
+              </a>
             </nav>
 
             <form action="/api/auth/signout" method="POST" className="pt-2 border-t border-[#E5E2DC]">

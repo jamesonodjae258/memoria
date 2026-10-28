@@ -19,7 +19,7 @@ export default function OnboardingStep4Page() {
           setData(json)
         }
       } catch (err) {
-        console.error('Failed to load status:', err)
+        console.error('Failed to load status:', (err as Error)?.message || 'Loading failed')
       } finally {
         setIsLoading(false)
       }
@@ -49,7 +49,7 @@ export default function OnboardingStep4Page() {
 
       <OnboardingHeader
         currentStep={4}
-        title="Setup Complete — Welcome to Memoria"
+        title="Setup Complete - Welcome to Memoria"
         subtitle="Your funeral home workspace is configured and ready for your cases."
         backUrl="/onboarding/step-3"
       />

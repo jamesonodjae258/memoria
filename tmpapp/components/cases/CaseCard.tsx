@@ -36,21 +36,21 @@ export default function CaseCard({ caseData, documents = [] }: CaseCardProps) {
   const complianceDoc = documents.find((d) => d.type === 'compliance_form')
 
   if (caseData.status === 'intake') {
-    pendingAction = 'Generate obituary draft & compliance paperwork'
+    pendingAction = 'Generate obituary draft and filing summary'
   } else if (caseData.status === 'documents_pending') {
     if (!obituaryDoc) {
       pendingAction = 'Generate initial obituary draft'
     } else if (obituaryDoc.status === 'draft') {
       pendingAction = 'Obituary draft awaiting staff approval'
     } else if (!complianceDoc) {
-      pendingAction = 'Pre-fill compliance paperwork'
+      pendingAction = 'Generate filing summary'
     } else {
-      pendingAction = 'Review missing compliance fields'
+      pendingAction = 'Review missing filing summary fields'
     }
   } else if (caseData.status === 'family_review') {
     pendingAction = 'Awaiting family review or confirmation'
   } else if (caseData.status === 'approved') {
-    pendingAction = 'All documents approved — ready for service'
+    pendingAction = 'All documents approved, ready for service'
   } else if (caseData.status === 'completed') {
     pendingAction = 'Case finalized & archived'
   }

@@ -27,6 +27,42 @@ export default function AdminHomesPage() {
   const [selectedHome, setSelectedHome] = useState<FuneralHomeItem | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isActionLoading, setIsActionLoading] = useState(false)
+  const [actionMessage, setActionMessage] = useState<string | null>(null)
+
+  async function handleSubscriptionAction(action: string, days?: number) {
+    if (!selectedHome) return
+    setIsActionLoading(true)
+    setActionMessage(null)
+    try {
+      const res = await fetch('/api/admin/homes/subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ home_id: selectedHome.id, action, days }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to update account')
+      }
+      setActionMessage('Account updated successfully.')
+      await loadHomes()
+      if (data.funeral_home) {
+        setSelectedHome((prev) =>
+          prev
+            ? {
+                ...prev,
+                subscription_status: data.funeral_home.subscription_status,
+                trial_ends_at: data.funeral_home.trial_ends_at,
+              }
+            : null
+        )
+      }
+    } catch (err: unknown) {
+      setActionMessage(err instanceof Error ? err.message : 'Action failed')
+    } finally {
+      setIsActionLoading(false)
+    }
+  }
 
   async function loadHomes() {
     setIsLoading(true)
@@ -187,7 +223,7 @@ export default function AdminHomesPage() {
                     <td className="p-3.5 text-[#94A3B8] font-mono text-[11px]">
                       {home.trial_ends_at
                         ? new Date(home.trial_ends_at).toLocaleDateString()
-                        : '—'}
+                        : '-'}
                     </td>
 
                     <td className="p-3.5 text-right">
@@ -240,7 +276,7 @@ export default function AdminHomesPage() {
                 <span className="text-[#94A3B8] block text-[10px] uppercase font-semibold">
                   Telephone
                 </span>
-                <span className="text-white font-medium">{selectedHome.phone || '—'}</span>
+                <span className="text-white font-medium">{selectedHome.phone || '-'}</span>
               </div>
 
               <div className="col-span-2">
@@ -250,7 +286,7 @@ export default function AdminHomesPage() {
                 <span className="text-white font-medium">
                   {selectedHome.street_address
                     ? `${selectedHome.street_address}, ${selectedHome.city || ''} ${selectedHome.state} ${selectedHome.zip || ''}`
-                    : '—'}
+                    : '-'}
                 </span>
               </div>
 
@@ -280,6 +316,104 @@ export default function AdminHomesPage() {
                   Staff Members
                 </span>
                 <span className="text-white font-bold font-mono text-sm">{selectedHome.staff_count} staff</span>
+              </div>
+            </div>
+
+            {/* Account & Subscription Actions */}
+            <div className="space-y-3 pt-1">
+              <span className="text-[10px] uppercase font-bold text-[#38BDF8] tracking-wider block font-mono">
+                Subscription &amp; Account Actions
+              </span>
+
+              {actionMessage && (
+                <div className="p-2.5 rounded bg-[#064E3B] border border-[#059669] text-xs text-[#6EE7B7]">
+                  {actionMessage}
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                {/* 1. Extend Trial */}
+                <div className="bg-[#0F172A] p-3 rounded border border-[#334155] space-y-2">
+                  <span className="text-[#94A3B8] font-semibold block text-[11px]">
+                    Extend Trial
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      disabled={isActionLoading}
+                      onClick={() => handleSubscriptionAction('extend_trial', 7)}
+                      className="px-2.5 py-1 rounded bg-[#334155] hover:bg-[#475569] text-white text-[11px] font-semibold transition-colors"
+                    >
+                      +7 Days
+                    </button>
+                    <button
+                      type="button"
+                      disabled={isActionLoading}
+                      onClick={() => handleSubscriptionAction('extend_trial', 14)}
+                      className="px-2.5 py-1 rounded bg-[#334155] hover:bg-[#475569] text-white text-[11px] font-semibold transition-colors"
+                    >
+                      +14 Days
+                    </button>
+                    <button
+                      type="button"
+                      disabled={isActionLoading}
+                      onClick={() => handleSubscriptionAction('extend_trial', 30)}
+                      className="px-2.5 py-1 rounded bg-[#38BDF8] hover:bg-[#0EA5E9] text-[#0F172A] text-[11px] font-semibold transition-colors"
+                    >
+                      +30 Days
+                    </button>
+                  </div>
+                </div>
+
+                {/* 2. Mark as Paying */}
+                <div className="bg-[#0F172A] p-3 rounded border border-[#334155] flex flex-col justify-between space-y-2">
+                  <div>
+                    <span className="text-[#94A3B8] font-semibold block text-[11px]">
+                      Subscription Status
+                    </span>
+                    <span className="text-white text-xs font-mono capitalize">
+                      {selectedHome.subscription_status}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={isActionLoading || selectedHome.subscription_status === 'active'}
+                    onClick={() => handleSubscriptionAction('mark_paying')}
+                    className="px-3 py-1.5 rounded bg-[#064E3B] hover:bg-[#047857] text-[#6EE7B7] text-xs font-semibold transition-colors border border-[#059669] disabled:opacity-50"
+                  >
+                    Mark as paying
+                  </button>
+                </div>
+
+                {/* 3. Disable Account */}
+                <div className="bg-[#0F172A] p-3 rounded border border-[#334155] flex flex-col justify-between space-y-2">
+                  <span className="text-[#94A3B8] font-semibold block text-[11px]">
+                    Disable Access
+                  </span>
+                  <button
+                    type="button"
+                    disabled={isActionLoading || selectedHome.subscription_status === 'cancelled'}
+                    onClick={() => handleSubscriptionAction('disable')}
+                    className="px-3 py-1.5 rounded bg-[#451A1A] hover:bg-[#7F1D1D] text-[#FCA5A5] text-xs font-semibold transition-colors border border-[#991B1B] disabled:opacity-50"
+                  >
+                    Disable account
+                  </button>
+                </div>
+
+                {/* 4. Re-enable Account */}
+                <div className="bg-[#0F172A] p-3 rounded border border-[#334155] flex flex-col justify-between space-y-2">
+                  <span className="text-[#94A3B8] font-semibold block text-[11px]">
+                    Restore Access
+                  </span>
+                  <button
+                    type="button"
+                    disabled={isActionLoading || selectedHome.subscription_status === 'active'}
+                    onClick={() => handleSubscriptionAction('re_enable')}
+                    className="px-3 py-1.5 rounded bg-[#334155] hover:bg-[#475569] text-white text-xs font-semibold transition-colors disabled:opacity-50"
+                  >
+                    Re-enable account
+                  </button>
+                </div>
               </div>
             </div>
 

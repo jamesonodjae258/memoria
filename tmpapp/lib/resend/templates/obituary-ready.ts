@@ -28,7 +28,7 @@ export async function sendObituaryReady(params: ObituaryReadyParams) {
         We have prepared a draft obituary for ${deceasedName} and would love for you to take a look when you are ready.
       </p>
       <p style="font-size: 15px; margin-bottom: 20px;">
-        There is no rush. Whenever you have a quiet moment, please review what we have written. If anything needs to be changed — a name, a date, a memory you would like added — simply reply to this email and let us know. We will make it right.
+        There is no rush. Whenever you have a quiet moment, please review what we have written. If anything needs to be changed - a name, a date, a memory you would like added - simply reply to this email and let us know. We will make it right.
       </p>
       ${
         reviewUrl

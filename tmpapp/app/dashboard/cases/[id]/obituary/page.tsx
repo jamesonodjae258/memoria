@@ -104,7 +104,7 @@ export default async function CaseObituaryPage({
             Generative Tribute Engine
           </div>
           <h1 className="text-3xl font-display font-medium text-[#2C221E] tracking-tight">
-            Obituary Studio — {c.deceased_name}
+            Obituary Studio - {c.deceased_name}
           </h1>
           <p className="text-xs text-[#6B5E50] mt-1.5 leading-relaxed">
             Generate, customize tone and length, refine phrasing, and approve the official tribute before dispatching to the family or publishing.

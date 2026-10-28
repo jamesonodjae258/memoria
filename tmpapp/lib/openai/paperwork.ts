@@ -97,7 +97,7 @@ export async function generatePaperworkSummary(
   const prompt = `
 You are an administrative assistant helping a funeral home pre-fill official compliance paperwork (${formName || 'State Compliance Form'}).
 Extract and organize the requested fields from the case data below.
-Output ONLY a valid JSON object matching the template — no explanation, no markdown, no extra text.
+Output ONLY a valid JSON object matching the template - no explanation, no markdown, no extra text.
 
 Template structure:
 ${JSON.stringify({ ...fieldsTemplate, missing_fields: [] }, null, 2)}
@@ -121,7 +121,7 @@ ${JSON.stringify(caseData, null, 2)}
     const raw = response.choices[0].message.content ?? '{}'
     return raw
   } catch (error) {
-    console.warn('[Paperwork AI] Provider request failed, using structured case fallback:', error)
+    console.warn('[Paperwork AI] Provider request failed, using structured fallback:', (error as Error)?.message || 'Generation failed')
     
     // Build structured fallback
     const fallback: Record<string, any> = { ...extractFallbackPaperwork(caseData) }

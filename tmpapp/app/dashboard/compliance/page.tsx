@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import DashboardHeader from '@/components/dashboard/DashboardHeader'
+import { MULTI_STATE_ENABLED } from '@/lib/features'
 
 
 interface ComplianceTemplateItem {
@@ -62,7 +63,7 @@ function ComplianceLibraryContent() {
     setIsLoading(true)
     setError(null)
     try {
-      const url = targetStateId
+      const url = targetStateId && MULTI_STATE_ENABLED
         ? `/api/compliance/templates?state_id=${targetStateId}`
         : '/api/compliance/templates'
       const res = await fetch(url)
@@ -165,10 +166,10 @@ function ComplianceLibraryContent() {
               Regulatory Compliance Library
             </div>
             <h1 className="text-3xl font-display font-semibold text-[#2C221E] tracking-tight">
-              State Compliance &amp; Legal Forms
+              State Filing Summaries
             </h1>
             <p className="text-xs sm:text-sm text-[#6B5E50] mt-1">
-              State-mandated death certificates, permits, and affidavits pre-populated by Memoria AI.
+              State filing summaries and worksheets prepared by Memoria AI.
             </p>
           </div>
 
@@ -177,7 +178,7 @@ function ComplianceLibraryContent() {
             className="btn-secondary !w-auto text-xs font-semibold uppercase tracking-wider px-4 py-2.5 h-10 flex items-center gap-1.5 self-start sm:self-auto"
           >
             <span>⚙️</span>
-            <span>Manage Operating States</span>
+            <span>{MULTI_STATE_ENABLED ? 'Manage Operating States' : 'Operating Jurisdiction'}</span>
           </Link>
         </div>
 
@@ -207,7 +208,7 @@ function ComplianceLibraryContent() {
             </div>
 
             {/* State Tabs if multiple registered */}
-            {registeredStates.length > 1 && (
+            {MULTI_STATE_ENABLED && registeredStates.length > 1 && (
               <div className="flex items-center gap-2">
                 <span className="text-xs text-[#8C7E6E] font-medium hidden sm:inline">
                   Viewing State:
@@ -242,7 +243,7 @@ function ComplianceLibraryContent() {
             Loading compliance templates…
           </div>
         ) : templates.length === 0 ? (
-          /* Empty State as requested */
+          /* Empty State when no templates exist for state */
           <div className="card-premium p-12 text-center max-w-2xl mx-auto space-y-4">
             <div className="w-12 h-12 rounded-full bg-[#FAF9F7] border border-[#E5E2DC] text-[#A8935D] text-2xl flex items-center justify-center mx-auto">
               📜
@@ -251,16 +252,11 @@ function ComplianceLibraryContent() {
               Forms in Preparation
             </h3>
             <p className="text-xs sm:text-sm text-[#6B5E50] max-w-md mx-auto leading-relaxed">
-              Compliance forms for <strong>{activeState?.name || 'this state'}</strong> are being added. Contact us to prioritize your state.
+              We are adding {activeState?.name || 'your state'}. We will email you when your forms are ready.
             </p>
-            <div className="pt-2">
-              <a
-                href="mailto:support@memoria.app?subject=State%20Compliance%20Request"
-                className="btn-primary !w-auto text-xs font-semibold uppercase tracking-wider px-5 py-2.5 inline-block"
-              >
-                Request State Forms
-              </a>
-            </div>
+            <p className="text-xs text-[#8C7E6E] max-w-md mx-auto">
+              Case intake, obituary drafting, and family emails remain fully available.
+            </p>
           </div>
         ) : (
           <div className="space-y-8">
@@ -304,7 +300,7 @@ function ComplianceLibraryContent() {
                         {Array.isArray(template.required_fields) && template.required_fields.length > 0 && (
                           <div className="pt-2">
                             <span className="text-[10px] uppercase font-bold text-[#8C7E6E] tracking-wider block mb-1">
-                              AI Pre-filled Fields ({template.required_fields.length}):
+                              Summary ready fields ({template.required_fields.length}):
                             </span>
                             <div className="flex flex-wrap gap-1">
                               {template.required_fields.map((f, idx) => (
@@ -339,7 +335,7 @@ function ComplianceLibraryContent() {
                           onClick={() => openGenerateModal(template)}
                           className="btn-primary !w-auto text-xs font-semibold uppercase tracking-wider px-4 py-2"
                         >
-                          Generate for Case
+                          Generate filing summary
                         </button>
                       </div>
                     </div>
@@ -405,7 +401,7 @@ function ComplianceLibraryContent() {
                           onClick={() => openGenerateModal(template)}
                           className="btn-secondary !w-auto text-xs font-semibold uppercase tracking-wider px-4 py-2"
                         >
-                          Generate for Case
+                          Generate filing summary
                         </button>
                       </div>
                     </div>
@@ -418,7 +414,7 @@ function ComplianceLibraryContent() {
         )}
       </main>
 
-      {/* 11c — Generate for Case Modal */}
+      {/* 11c - Generate filing summary modal */}
       {selectedTemplate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
           <div className="bg-white border border-[#E5E2DC] w-full max-w-lg rounded-lg p-6 sm:p-8 space-y-5 shadow-2xl relative">
@@ -435,13 +431,13 @@ function ComplianceLibraryContent() {
 
             <div>
               <span className="text-[10px] font-bold uppercase tracking-wider text-[#A8935D] block">
-                AI Compliance Generator
+                Filing Summary Generator
               </span>
               <h2 className="text-lg font-display font-semibold text-[#2C221E] tracking-tight mt-0.5">
                 {selectedTemplate.form_name}
               </h2>
               <p className="text-xs text-[#6B5E50] mt-1">
-                Select the case you want to generate and pre-populate this official document for.
+                Select the case you want to generate a filing summary for.
               </p>
             </div>
 
@@ -498,9 +494,9 @@ function ComplianceLibraryContent() {
                 className="btn-primary !w-auto text-xs font-semibold uppercase tracking-wider px-6 py-2.5 flex items-center gap-2"
               >
                 {isGenerating ? (
-                  <span>Generating Compliance PDF…</span>
+                  <span>Generating filing summary...</span>
                 ) : (
-                  <span>Generate &amp; Open Document</span>
+                  <span>Generate filing summary</span>
                 )}
 
               </button>

@@ -12,7 +12,7 @@ interface SendEmailParams {
   subject: string
   html: string
   funeralHomeName: string    // used as the display name in From field
-  funeralHomeReplyTo: string // funeral home's contact_email — families reply here
+  funeralHomeReplyTo: string // funeral home's contact_email - families reply here
 }
 
 interface SendEmailResult {

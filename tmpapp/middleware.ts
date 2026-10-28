@@ -63,7 +63,7 @@ export async function middleware(request: NextRequest) {
     } = await supabase.auth.getUser()
     user = authUser
   } catch (err) {
-    console.error('Supabase auth check failed:', err)
+    console.error('Supabase auth check failed:', (err as Error)?.message || 'Auth check failed')
   }
 
   const isAdminRoute = request.nextUrl.pathname.startsWith('/admin')
@@ -82,11 +82,41 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Unauthenticated users trying to access admin → redirect to dashboard
+  // Unauthenticated users trying to access admin -> redirect to dashboard
   if (!user && isAdminRoute) {
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
     return NextResponse.redirect(url)
+  }
+
+  // Redirect expired trial users from dashboard routes to /dashboard/billing
+  if (user && isDashboardRoute && request.nextUrl.pathname !== '/dashboard/billing') {
+    try {
+      const { data: profile } = await supabase
+        .from('staff_profiles')
+        .select('funeral_homes(subscription_status, trial_ends_at)')
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+      const fh = profile?.funeral_homes as any
+      if (fh) {
+        const isPaying = fh.subscription_status === 'active'
+        const isCancelled = fh.subscription_status === 'cancelled'
+        const isExpiredTrial =
+          fh.subscription_status === 'trial' &&
+          fh.trial_ends_at &&
+          new Date(fh.trial_ends_at).getTime() < Date.now()
+
+        if (!isPaying && (isCancelled || isExpiredTrial)) {
+          const url = request.nextUrl.clone()
+          url.pathname = '/dashboard/billing'
+          url.searchParams.set('expired', 'true')
+          return NextResponse.redirect(url)
+        }
+      }
+    } catch {
+      // In case of error, continue request without blocking
+    }
   }
 
 

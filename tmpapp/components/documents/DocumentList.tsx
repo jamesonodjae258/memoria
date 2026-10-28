@@ -37,7 +37,24 @@ export default function DocumentList({
     return null
   })
 
-  async function handleGeneratePaperwork() {
+  function getDocMissingFields(doc: Document): string[] {
+    if (doc.type === 'compliance_form' && doc.draft_content) {
+      try {
+        const cleaned = doc.draft_content
+          .replace(/^```json\s*/i, '')
+          .replace(/^```\s*/, '')
+          .replace(/```$/, '')
+          .trim()
+        const parsed = JSON.parse(cleaned)
+        return Array.isArray(parsed.missing_fields) ? parsed.missing_fields : []
+      } catch {
+        return []
+      }
+    }
+    return []
+  }
+
+  async function handleGenerateFilingSummary() {
     setIsGenerating(true)
     setError(null)
 
@@ -50,7 +67,7 @@ export default function DocumentList({
 
       if (!res.ok) {
         const data = await res.json()
-        const errMsg = data.error || 'Failed to generate compliance paperwork.'
+        const errMsg = data.error || 'Failed to generate filing summary.'
         setError(errMsg)
         toast({ type: 'error', title: 'Generation Failed', message: errMsg })
         return
@@ -59,9 +76,9 @@ export default function DocumentList({
       const data = await res.json()
       setDocuments((prev) => [data.document, ...prev.filter((d) => d.id !== data.document.id)])
       setMissingFields(data.missing_fields || [])
-      toast({ type: 'success', title: 'Paperwork Generated', message: 'Compliance PDF created and stored.' })
+      toast({ type: 'success', title: 'Filing Summary Generated', message: 'Filing summary PDF created and stored.' })
     } catch {
-      const errMsg = 'Network error while generating paperwork.'
+      const errMsg = 'Network error while generating filing summary.'
       setError(errMsg)
       toast({ type: 'error', title: 'Connection Error', message: errMsg })
     } finally {
@@ -80,10 +97,10 @@ export default function DocumentList({
             </div>
             <div>
               <h3 className="text-sm font-bold text-[#9F2F2D] uppercase tracking-wider">
-                Action Required: Missing Compliance Records ({missingFields.length})
+                Action Required: Missing Filing Summary Fields ({missingFields.length})
               </h3>
               <p className="text-xs text-[#2C221E] mt-1 leading-relaxed">
-                The compliance engine flagged missing mandatory data points in the case record for {deceasedName}. These are highlighted in the pre-filled worksheet:
+                The system flagged missing mandatory data points in the case record for {deceasedName}. These are highlighted in the filing summary:
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {missingFields.map((field, idx) => (
@@ -106,16 +123,16 @@ export default function DocumentList({
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h2 className="text-xl font-display font-medium text-[#2C221E]">
-              Generate &amp; Pre-Fill Official Documents
+              Generate Filing Summary
             </h2>
             <p className="text-xs text-[#6B5E50] mt-1">
-              Extracts case intake records into official state certificates and authorization PDFs.
+              Extracts case intake records into state filing summaries and review PDFs.
             </p>
           </div>
 
           <button
             type="button"
-            onClick={handleGeneratePaperwork}
+            onClick={handleGenerateFilingSummary}
             disabled={isGenerating}
             className="btn-primary !w-auto text-xs font-semibold uppercase tracking-wider px-5 py-2.5 shadow-sm"
           >
@@ -125,12 +142,11 @@ export default function DocumentList({
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>
-                Compiling PDF…
+                Compiling PDF...
               </>
             ) : (
-              'Generate Paperwork'
+              'Generate filing summary'
             )}
-
           </button>
         </div>
 
@@ -153,49 +169,100 @@ export default function DocumentList({
 
         {documents.length === 0 ? (
           <div className="py-12 text-center text-[#8C7E6E] text-xs">
-            No compliance documents generated yet. Click &quot;Generate Paperwork&quot; above to create pre-filled PDF forms.
+            No filing summaries generated yet. Click &quot;Generate filing summary&quot; above to create summary PDF documents.
           </div>
         ) : (
           <div className="divide-y divide-[#E5E2DC]">
-            {documents.map((doc) => (
-              <div
-                key={doc.id}
-                className="py-4 flex flex-wrap items-center justify-between gap-4 first:pt-0 last:pb-0"
-              >
-                <div className="flex items-center gap-3.5">
-                  <div className="w-10 h-10 rounded bg-[#FAF9F7] border border-[#E5E2DC] flex items-center justify-center shrink-0 text-[#A8935D] font-mono font-bold text-xs">
-                    PDF
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-semibold text-[#2C221E]">
-                      {doc.title}
-                    </h4>
-                    <p className="text-xs text-[#8C7E6E] mt-0.5 font-mono">
-                      Type: <span className="capitalize text-[#4D4237]">{doc.type.replace('_', ' ')}</span> &bull; Status: <span className="capitalize text-[#4D4237]">{doc.status.replace('_', ' ')}</span> &bull; v{doc.version}
-                    </p>
-                  </div>
-                </div>
+            {documents.map((doc) => {
+              const docMissing = getDocMissingFields(doc)
+              const displayMissing =
+                docMissing.length > 0
+                  ? docMissing
+                  : doc.type === 'compliance_form' && missingFields
+                  ? missingFields
+                  : []
 
-                <div className="flex items-center gap-3">
-                  {doc.pdf_url ? (
-                    <a
-                      href={doc.pdf_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      download
-                      className="btn-secondary !w-auto text-xs px-4 py-2 font-semibold inline-flex items-center gap-1.5"
-                    >
-                      <svg className="w-4 h-4 text-[#8C7E6E]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                      </svg>
-                      Download PDF
-                    </a>
-                  ) : (
-                    <span className="text-xs text-[#8C7E6E] italic">PDF compiling…</span>
+              return (
+                <div
+                  key={doc.id}
+                  className="py-4 flex flex-col gap-3 first:pt-0 last:pb-0"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-10 h-10 rounded bg-[#FAF9F7] border border-[#E5E2DC] flex items-center justify-center shrink-0 text-[#A8935D] font-mono font-bold text-xs">
+                        PDF
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-semibold text-[#2C221E]">
+                          {doc.title}
+                        </h4>
+                        <p className="text-xs text-[#8C7E6E] mt-0.5 font-mono">
+                          Type: <span className="capitalize text-[#4D4237]">{doc.type === 'compliance_form' ? 'filing summary' : doc.type.replace('_', ' ')}</span> &bull; Status: <span className="capitalize text-[#4D4237]">{doc.status.replace('_', ' ')}</span> &bull; v{doc.version}
+                        </p>
+                      </div>
+                    </div>
+
+                    {displayMissing.length === 0 && (
+                      <div className="flex items-center gap-3">
+                        {doc.pdf_url ? (
+                          <a
+                            href={doc.pdf_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            download
+                            className="btn-secondary !w-auto text-xs px-4 py-2 font-semibold inline-flex items-center gap-1.5"
+                          >
+                            <svg className="w-4 h-4 text-[#8C7E6E]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            Download PDF
+                          </a>
+                        ) : (
+                          <span className="text-xs text-[#8C7E6E] italic">PDF compiling...</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {displayMissing.length > 0 && (
+                    <div className="w-full bg-[#FAF9F7] border border-[#E5E2DC] rounded p-3.5 space-y-3">
+                      <div className="bg-[#FDEBEC] border border-[#9F2F2D]/30 p-2.5 rounded text-xs text-[#9F2F2D] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                          <span className="font-semibold uppercase tracking-wider text-[11px] block">
+                            Missing fields to complete before filing ({displayMissing.length}):
+                          </span>
+                          <span className="text-[11px] font-mono text-[#2C221E]">
+                            {displayMissing.join(', ')}
+                          </span>
+                        </div>
+                        <span className="text-[10px] uppercase font-bold text-[#9F2F2D] shrink-0 bg-white px-2 py-0.5 rounded border border-[#9F2F2D]/20 self-start sm:self-auto">
+                          Review required
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-end">
+                        {doc.pdf_url ? (
+                          <a
+                            href={doc.pdf_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            download
+                            className="btn-secondary !w-auto text-xs px-4 py-2 font-semibold inline-flex items-center gap-1.5"
+                          >
+                            <svg className="w-4 h-4 text-[#8C7E6E]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            Download PDF
+                          </a>
+                        ) : (
+                          <span className="text-xs text-[#8C7E6E] italic">PDF compiling...</span>
+                        )}
+                      </div>
+                    </div>
                   )}
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>

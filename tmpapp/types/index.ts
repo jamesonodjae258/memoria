@@ -55,6 +55,16 @@ export interface StateRecord {
   created_at: string
 }
 
+export interface StateRequest {
+  id: string
+  user_id: string
+  funeral_home_id?: string | null
+  state_name: string
+  contact_email: string
+  status: 'new' | 'in_progress' | 'done' | 'cancelled'
+  created_at: string
+}
+
 export interface ComplianceTemplate {
   id: string
   state_id: string

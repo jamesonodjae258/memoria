@@ -96,6 +96,7 @@ export async function POST(request: NextRequest) {
           email: user?.email || null,
           subscription_status: 'trial',
           subscription_plan: 'starter',
+          trial_ends_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
           onboarding_step: 2,
         })
         .select('id')
@@ -107,12 +108,18 @@ export async function POST(request: NextRequest) {
       homeId = newHome.id
 
       // Create owner staff profile
-      await adminClient.from('staff_profiles').insert({
+      const { error: staffErr } = await adminClient.from('staff_profiles').insert({
         user_id: userId,
         funeral_home_id: homeId,
         full_name: full_name?.trim() || user?.user_metadata?.full_name || 'Owner',
         role: 'owner',
       })
+
+      if (staffErr) {
+        // Rollback created funeral home record to prevent leaving an orphaned account
+        await adminClient.from('funeral_homes').delete().eq('id', homeId)
+        return NextResponse.json({ error: staffErr.message }, { status: 500 })
+      }
     }
 
     return NextResponse.json({

@@ -28,7 +28,7 @@ async function verify() {
     process.exit(1)
   } else {
     console.log('VERIFICATION_SUCCESS: Columns exist on funeral_homes table.')
-    console.log('Sample row queried:', data)
+    console.log('Sample row id queried:', data?.[0]?.id)
     process.exit(0)
   }
 }

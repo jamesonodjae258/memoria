@@ -243,7 +243,7 @@ export default function ObituaryEditor({
               ${isApproved ? 'bg-[#EDF3EC] text-[#346538] border border-[#346538]/20' : 'bg-[#FBF3DB] text-[#956400] border border-[#D4C596]/60'}
             `}
           >
-            {isApproved ? 'Approved by Staff' : 'Draft — Pending Approval'}
+            {isApproved ? 'Approved by Staff' : 'Draft - Pending Approval'}
           </span>
         </div>
 

@@ -1,6 +1,7 @@
 export { default } from './landing/page'
+
 export const metadata = {
-  title: 'Memoria — Modern AI Suite for Funeral Homes',
+  title: 'Memoria | Case paperwork for independent funeral homes',
   description:
-    'AI-assisted case intake, obituary drafting, family communications, and state compliance for independent funeral directors.',
+    'Intake, obituary drafts, state filing summaries, and family updates in one place. Every draft is reviewed by your team before it reaches a family.',
 }

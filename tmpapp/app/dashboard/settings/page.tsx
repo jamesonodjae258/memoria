@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import DashboardHeader from '@/components/dashboard/DashboardHeader'
+import { MULTI_STATE_ENABLED } from '@/lib/features'
 
 interface FuneralHomeProfile {
   id: string
@@ -92,7 +93,7 @@ export default function DirectorSettingsPage() {
           setInvitations(tData.invitations || [])
         }
       } catch (err) {
-        console.error('Error loading settings:', err)
+        console.error('Error loading settings:', (err as Error)?.message || 'Loading failed')
       } finally {
         setIsLoading(false)
       }
@@ -178,7 +179,7 @@ export default function DirectorSettingsPage() {
         setInvitations((prev) => prev.filter((i) => i.id !== inviteId))
       }
     } catch (err) {
-      console.error('Failed to revoke invite:', err)
+      console.error('Failed to revoke invite:', (err as Error)?.message || 'Revoke failed')
     }
   }
 
@@ -194,7 +195,7 @@ export default function DirectorSettingsPage() {
         setStaffList((prev) => prev.filter((s) => s.id !== staffId))
       }
     } catch (err) {
-      console.error('Failed to remove staff:', err)
+      console.error('Failed to remove staff:', (err as Error)?.message || 'Removal failed')
     }
   }
 
@@ -231,7 +232,7 @@ export default function DirectorSettingsPage() {
               href="/dashboard/settings/states"
               className="btn-secondary text-xs font-semibold uppercase tracking-wider px-4 py-2.5 h-10 flex items-center gap-2 whitespace-nowrap shrink-0"
             >
-              <span>Operating States</span>
+              <span>{MULTI_STATE_ENABLED ? 'Operating States' : 'Operating Jurisdiction'}</span>
             </Link>
 
             {isDirector && (
@@ -278,10 +279,12 @@ export default function DirectorSettingsPage() {
                 Regulatory Jurisdiction
               </span>
               <h3 className="font-display text-lg font-semibold text-[#2C221E]">
-                State Licenses &amp; Filings
+                {MULTI_STATE_ENABLED ? 'State Licenses & Filings' : 'Operating Jurisdiction'}
               </h3>
               <p className="text-xs text-[#6B5E50] mt-1.5 leading-relaxed">
-                Configure primary licensing and ancillary states for automatic PDF compliance pre-filling.
+                {MULTI_STATE_ENABLED
+                  ? 'Configure primary licensing and ancillary states for PDF filing summaries.'
+                  : 'View primary licensing jurisdiction for state filing summaries.'}
               </p>
             </div>
             <div className="mt-4 pt-4 border-t border-[#E5E2DC]">
@@ -289,7 +292,7 @@ export default function DirectorSettingsPage() {
                 href="/dashboard/settings/states"
                 className="text-xs font-semibold text-[#A8935D] hover:underline"
               >
-                Configure Operating States
+                {MULTI_STATE_ENABLED ? 'Configure Operating States' : 'View Operating State'}
               </Link>
             </div>
           </div>

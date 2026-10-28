@@ -21,7 +21,7 @@ export type ObituaryTone = 'formal' | 'warm'
  * Generate an obituary draft from case intake data.
  *
  * - Temperature 0.7: warmth needed for this kind of writing.
- * - The output is always a draft — it requires staff approval before
+ * - The output is always a draft - it requires staff approval before
  *   it can be shared with the family (enforced in the database status flow).
  * - Never invents facts. Missing fields are omitted gracefully.
  */
@@ -33,9 +33,9 @@ export async function generateObituary(
   }
 ): Promise<string> {
   const lengthGuidance = {
-    short: 'Length: Keep it brief — approximately 100–150 words.',
-    standard: 'Length: 150–250 words unless additional_notes suggest a longer tribute is appropriate.',
-    long: 'Length: A fuller tribute — approximately 300–400 words. Draw on every detail the family shared.',
+    short: 'Length: Keep it brief - approximately 100-150 words.',
+    standard: 'Length: 150-250 words unless additional_notes suggest a longer tribute is appropriate.',
+    long: 'Length: A fuller tribute - approximately 300-400 words. Draw on every detail the family shared.',
   }
 
   const toneGuidance = {
@@ -51,7 +51,7 @@ You are a compassionate writer helping a funeral home draft an obituary.
 Use the information below to write a warm, dignified obituary in the third person.
 ${selectedTone}
 ${selectedLength}
-Do not invent facts. If a field is empty, omit it gracefully — do not make up details.
+Do not invent facts. If a field is empty, omit it gracefully - do not make up details.
 
 Deceased: ${caseData.deceased_name}
 Date of Birth: ${caseData.date_of_birth ?? 'not provided'}
@@ -77,7 +77,7 @@ Write only the obituary text. No preamble. No explanation. No quotation marks.
 
     return response.choices[0].message.content ?? ''
   } catch (error) {
-    console.warn('[Obituary AI] OpenAI request failed or unconfigured, using fallback generation:', error)
+    console.warn('[Obituary AI] Request failed or unconfigured, using fallback generation:', (error as Error)?.message || 'Generation failed')
 
     const dobFormatted = caseData.date_of_birth
       ? `born on ${new Date(caseData.date_of_birth).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`

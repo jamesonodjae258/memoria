@@ -10,30 +10,29 @@ import {
 } from '@/lib/twilio/send-sms'
 import { NextRequest, NextResponse } from 'next/server'
 import type { CaseRecord, FuneralHome } from '@/types'
+import { SMS_ENABLED } from '@/lib/features'
 
 export type CommunicationTemplate = 'intake_confirmed' | 'obituary_ready' | 'service_confirmed'
 
+const FAMILY_FACING_TEMPLATES: CommunicationTemplate[] = [
+  'intake_confirmed',
+  'obituary_ready',
+  'service_confirmed',
+]
+
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createServerSupabaseClient()
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'You must be signed in to send communications.' },
-        { status: 401 }
-      )
-    }
+    const authHeader = request.headers.get('authorization')
+    const isBearerAuth = Boolean(authHeader?.startsWith('Bearer '))
+    const bearerToken = isBearerAuth ? authHeader!.replace(/^Bearer\s+/i, '').trim() : null
 
     const body = await request.json()
-    const { case_id, template_name, channel, preview } = body as {
+    const { case_id, template_name, channel, preview, confirmed } = body as {
       case_id: string
       template_name: CommunicationTemplate
       channel: 'email' | 'sms' | 'both'
       preview?: boolean
+      confirmed?: boolean
     }
 
     if (!case_id || !template_name || !channel) {
@@ -41,6 +40,68 @@ export async function POST(request: NextRequest) {
         { error: 'case_id, template_name, and channel are required.' },
         { status: 400 }
       )
+    }
+
+    if (!SMS_ENABLED && (channel === 'sms' || channel === 'both')) {
+      return NextResponse.json(
+        { error: 'SMS communications are disabled. Please use the email delivery channel.' },
+        { status: 400 }
+      )
+    }
+
+    const isFamilyFacing = FAMILY_FACING_TEMPLATES.includes(template_name)
+
+    // Family-facing templates must never use the bearer token path
+    if (isFamilyFacing && isBearerAuth) {
+      return NextResponse.json(
+        {
+          error:
+            'Bearer token authorization cannot be used for family communications. An authenticated staff session is required.',
+        },
+        { status: 403 }
+      )
+    }
+
+    let staffUserId: string | null = null
+
+    if (isFamilyFacing) {
+      // Must require an authenticated staff session
+      const supabase = createServerSupabaseClient()
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser()
+
+      if (authError || !user) {
+        return NextResponse.json(
+          { error: 'An authenticated staff session is required to send family communications.' },
+          { status: 403 }
+        )
+      }
+
+      staffUserId = user.id
+
+      // In send mode, staff must explicitly provide confirmed: true
+      if (!preview && confirmed !== true) {
+        return NextResponse.json(
+          {
+            error:
+              'Staff confirmation is required to send family communications. Set confirmed to true in the request body.',
+          },
+          { status: 403 }
+        )
+      }
+    } else {
+      // Non-family internal staff alerts may use the API_SECRET bearer token
+      const isApiSecretValid = Boolean(
+        process.env.API_SECRET && bearerToken && bearerToken === process.env.API_SECRET
+      )
+      if (!isApiSecretValid) {
+        return NextResponse.json(
+          { error: 'Invalid authorization for internal staff alert.' },
+          { status: 403 }
+        )
+      }
     }
 
     // Fetch case and joined funeral home info
@@ -56,6 +117,23 @@ export async function POST(request: NextRequest) {
     }
 
     const c = caseData as CaseRecord & { funeral_homes: FuneralHome | null }
+
+    // If sent by staff session, verify staff member belongs to the funeral home of this case
+    if (staffUserId) {
+      const { data: staffProfile } = await serviceClient
+        .from('staff_profiles')
+        .select('funeral_home_id')
+        .eq('user_id', staffUserId)
+        .maybeSingle()
+
+      if (!staffProfile || staffProfile.funeral_home_id !== c.funeral_home_id) {
+        return NextResponse.json(
+          { error: 'You do not have permission to send communications for this case.' },
+          { status: 403 }
+        )
+      }
+    }
+
     const funeralHome = c.funeral_homes
     const funeralHomeName = funeralHome?.name || 'Your Funeral Home'
     const contactEmail = funeralHome?.contact_email?.trim() || null
@@ -79,7 +157,7 @@ export async function POST(request: NextRequest) {
           {
             error: 'MISSING_CONTACT_EMAIL',
             message:
-              'This funeral home has not set a contact email address. Ask them to add it in Settings before sending family communications.',
+              'This funeral home has not set a contact email address. Please add it in Settings before sending family communications.',
           },
           { status: 422 }
         )
@@ -104,7 +182,7 @@ export async function POST(request: NextRequest) {
     let emailRender = { subject: '', text: '', html: '' }
     if (template_name === 'intake_confirmed') {
       emailRender = {
-        subject: `We have received your information — ${funeralHomeName}`,
+        subject: `We have received your information - ${funeralHomeName}`,
         text: `Dear ${c.family_contact_name},\n\nThank you for trusting ${funeralHomeName} during this time. We have received all the information needed to begin arrangements for ${caseName}, and our team is already at work.\n\nWe will be in touch shortly with the next steps.\n\nWith care,\n${funeralHomeName}`,
         html: `Preview for intake confirmed`,
       }
@@ -116,7 +194,7 @@ export async function POST(request: NextRequest) {
       }
     } else if (template_name === 'service_confirmed') {
       emailRender = {
-        subject: `Service details confirmed — ${caseName}`,
+        subject: `Service details confirmed - ${caseName}`,
         text: `Dear ${c.family_contact_name},\n\nThe arrangements for ${caseName} have been confirmed:\nService Type: ${serviceType}\nDate & Time: ${formattedServiceDate}\nLocation: ${serviceLocation}\n\nWith care,\n${funeralHomeName}`,
         html: `Preview for service confirmed`,
       }
@@ -151,7 +229,7 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // SEND MODE: Perform send operations & log every outcome to communication_logs
+    // SEND MODE: Perform send operations and log every outcome to communication_logs
     const sendTasks: Promise<{ channel: string; success: boolean; error?: string }>[] = []
 
     // 1. Email Dispatch Task
@@ -202,7 +280,7 @@ export async function POST(request: NextRequest) {
                 funeralHomePhone,
               })
             } else if (template_name === 'obituary_ready') {
-              const origin = request.nextUrl.origin || 'http://localhost:3000'
+              const origin = process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin || 'http://localhost:3000'
               result = await sendObituaryReady({
                 to: c.family_contact_email,
                 familyContactName: c.family_contact_name,

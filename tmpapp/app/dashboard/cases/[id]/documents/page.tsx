@@ -99,7 +99,7 @@ export default async function CaseDocumentsPage({
               {c.deceased_name}
             </Link>
             <span className="text-[#D2C9BD]">/</span>
-            <span className="text-[#2C221E] font-medium">Compliance &amp; Documents</span>
+            <span className="text-[#2C221E] font-medium">Compliance</span>
           </nav>
 
           <span className="text-[11px] font-mono text-[#A8935D] bg-white border border-[#E5E2DC] px-2.5 py-1 rounded font-bold">
@@ -110,16 +110,20 @@ export default async function CaseDocumentsPage({
 
       {/* Main Content */}
       <main className="py-8 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto flex-1 w-full">
+        <div className="mb-4 p-3 bg-white border border-[#E5E2DC] rounded text-xs text-[#6B5E50]">
+          Prepared for staff review. Confirm current requirements with your state office before filing.
+        </div>
+
         <div className="mb-8">
           <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-white text-[#8C7E6E] text-xs font-semibold uppercase tracking-widest mb-2 border border-[#E5E2DC]">
             <span className="w-2 h-2 rounded-full bg-[#A8935D]" />
-            State Compliance &amp; Vital Worksheets
+            State Filing Summaries &amp; Vital Worksheets
           </div>
           <h1 className="text-3xl font-display font-medium text-[#2C221E] tracking-tight">
-            Compliance &amp; Documents — {c.deceased_name}
+            Filing Summaries - {c.deceased_name}
           </h1>
           <p className="text-xs text-[#6B5E50] mt-1.5 leading-relaxed">
-            Generate pre-filled legal authorizations, track missing intake fields, and download PDF documents.
+            Generate filing summaries, track missing intake fields, and download PDF documents.
           </p>
         </div>
 
